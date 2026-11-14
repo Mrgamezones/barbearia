@@ -1,0 +1,66 @@
+# Ambiente local completo: app (build de produção) na rede do Supabase local (`npx supabase start`).
+# Uso: npm run docker:up | docker:down | docker:reset | docker:mobile
+name: barbearia
+
+x-supabase-url: &supabase-url ${SUPABASE_INTERNAL_URL:-http://supabase_kong_barbearia:8000}
+
+services:
+  app:
+    build:
+      context: .
+      # O build pré-renderiza páginas lendo o catálogo do Supabase local. O BuildKit não entra em redes
+      # customizadas, então o build usa a API publicada no host (porta [api] do supabase/config.toml).
+      extra_hosts: ["host.docker.internal:host-gateway"]
+      args:
+        SUPABASE_INTERNAL_URL: ${SUPABASE_BUILD_URL:-http://host.docker.internal:56321}
+        SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?copie .env.example para .env}
+    image: barbearia-app:local
+    env_file: .env
+    environment:
+      SUPABASE_INTERNAL_URL: *supabase-url
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-smtp}
+      SMTP_HOST: ${SMTP_HOST:-supabase_inbucket_barbearia}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SITE_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+      # Modo visual da simulação (o serviço mobile compartilha a rede deste container).
+      - "9323:9323"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks: [supabase]
+    restart: unless-stopped
+
+  # Simulação Android/iOS (Playwright). Só sobe com --profile mobile (npm run docker:mobile).
+  mobile:
+    profiles: [mobile]
+    # Mesma versão do @playwright/test do package.json (o script docker.mjs define PLAYWRIGHT_VERSION).
+    image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION:?use npm run docker:mobile}-noble
+    # Compartilha a rede do app: o site é http://localhost:3000 (contexto seguro para o service worker)
+    # e a porta 9323 do modo visual é publicada pelo serviço app.
+    network_mode: "service:app"
+    depends_on:
+      app:
+        condition: service_healthy
+    ipc: host
+    init: true
+    working_dir: /work
+    env_file: .env
+    environment:
+      PLAYWRIGHT_IMAGE_VERSION: ${PLAYWRIGHT_VERSION:-}
+      MOBILE_WORKERS: ${MOBILE_WORKERS:-2}
+      MAILPIT_URL: http://supabase_inbucket_barbearia:8025
+    volumes:
+      - ./e2e:/work/e2e
+      - ./package.json:/work/package.json:ro
+      # Só JavaScript (Playwright, supabase-js): os navegadores vêm da imagem.
+      - ./node_modules:/work/node_modules:ro
+
+networks:
+  supabase:
+    name: supabase_network_barbearia
+    external: true

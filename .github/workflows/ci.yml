@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Supabase local
+        run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+
+      - name: Variáveis de ambiente de teste
+        run: |
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          VAPID=$(npx web-push generate-vapid-keys --json)
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
+            echo "BUSINESS_TIMEZONE=America/Sao_Paulo"
+            echo "NEXT_PUBLIC_VAPID_PUBLIC_KEY=$(echo "$VAPID" | node -pe 'JSON.parse(require("fs").readFileSync(0)).publicKey')"
+            echo "VAPID_PRIVATE_KEY=$(echo "$VAPID" | node -pe 'JSON.parse(require("fs").readFileSync(0)).privateKey')"
+            echo "VAPID_SUBJECT=mailto:ci@barbearia.local"
+            echo "CRON_SECRET=ci-$(openssl rand -hex 16)"
+          } > .env.local
+
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npx supabase test db
+
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          CI: "1"
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

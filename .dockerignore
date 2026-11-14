@@ -1,0 +1,32 @@
+# Segredos e configuração local nunca entram na imagem
+.env*
+
+# Dependências e builds do host
+node_modules
+.next
+out
+*.tsbuildinfo
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
+
+# Testes e resultados
+e2e
+tests
+test-results
+playwright-report
+coverage
+**/*.test.ts
+**/*.test.tsx
+
+# Ferramentas, docs e estado local
+.git
+.github
+.claude
+openspec
+docs
+supabase/.temp
+supabase/.branches
+Dockerfile
+docker-compose.yml
+.dockerignore

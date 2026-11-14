@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Apostila de Vendas – Agenda Online para Barbearias</title>
+<script>
+  /* ============================================================
+     VALORES E DADOS DA OFERTA — mude aqui e rode: npm run handbook:pdf
+     ============================================================ */
+  const VALORES = {
+    produto: "Agenda Online para Barbearias",
+    site: "R$ 350,00",
+    parcelas: "4x de R$ 87,50 sem juros",
+    parcela: "R$ 87,50",
+    teste: "7 dias",
+    bonus: "3 meses",
+    mensal: "R$ 89,90",
+    avulsa: "R$ 110,00",
+    whatsMsg: "R$ 0,035",
+    whatsAgendamento: "R$ 0,11",
+    whatsData: "outubro de 2026",
+    responsavel: "____________________________",
+    contato: "____________________________",
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-v]").forEach((el) => {
+      el.textContent = VALORES[el.dataset.v] ?? `??${el.dataset.v}??`;
+    });
+  });
+</script>
+<style>
+  :root {
+    --ink: #1c1b19;
+    --muted: #6b665d;
+    --line: #e2dccf;
+    --paper: #ffffff;
+    --soft: #f7f3ea;
+    --gold: #a47c3c;
+    --gold-soft: #f1e6d0;
+    --dark: #0b0b0c;
+    --dark-2: #1b1b1e;
+    --ok: #2f6b3f;
+    --no: #9a3b2e;
+  }
+  @page {
+    size: A4;
+    margin: 16mm 15mm 18mm;
+    @bottom-left { content: "Apostila de vendas · uso interno"; font: 8pt "Segoe UI", Arial, sans-serif; color: #9a958b; }
+    @bottom-right { content: counter(page); font: 9pt "Segoe UI", Arial, sans-serif; color: #9a958b; }
+  }
+  @page capa { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font: 10.5pt/1.5 "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--paper); }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 700; line-height: 1.15; margin: 0; text-wrap: balance; }
+  h2 { font-size: 23pt; margin-bottom: 3mm; }
+  h3 { font-size: 13pt; margin: 4.5mm 0 1.8mm; }
+  p { margin: 0 0 3mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
+  li { margin-bottom: 1mm; }
+  strong { font-weight: 650; }
+
+  section { break-before: page; }
+  section:first-of-type { break-before: auto; }
+  .kicker { font-size: 8.5pt; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); font-weight: 650; margin-bottom: 2mm; }
+  .lead { font-size: 12.5pt; line-height: 1.45; color: #3a3833; max-width: 160mm; margin-bottom: 4mm; }
+  .rule { height: 2px; width: 22mm; background: var(--gold); margin: 0 0 4mm; }
+
+  /* Capa */
+  .capa { page: capa; height: 297mm; background: var(--dark); color: #f4f1ea; padding: 30mm 22mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .capa .kicker { color: #c8a165; }
+  .capa h1 { font-size: 46pt; line-height: 1.05; margin: 6mm 0; }
+  .capa h1 em { font-style: italic; color: #c8a165; }
+  .capa .sub { font-size: 14pt; color: #c9c4ba; max-width: 120mm; }
+  .capa .pe { border-top: 1px solid #2a2a2e; padding-top: 6mm; font-size: 10pt; color: #a39f97; display: flex; justify-content: space-between; gap: 10mm; }
+  .capa .pe b { color: #f4f1ea; font-weight: 600; }
+
+  /* Blocos */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  .card { border: 1px solid var(--line); border-radius: 3mm; padding: 4mm 4.5mm; background: var(--paper); break-inside: avoid; }
+  .card.soft { background: var(--soft); border-color: transparent; }
+  .card h3 { margin-top: 0; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .nota { border-left: 3px solid var(--gold); background: var(--gold-soft); padding: 3mm 5mm; border-radius: 0 2mm 2mm 0; margin: 4mm 0; break-inside: avoid; }
+  .nota p:last-child { margin-bottom: 0; }
+  .alerta { border-left-color: var(--no); background: #f8e9e5; }
+  .confirmar { display: inline-block; font-size: 7.5pt; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--no); border-radius: 1mm; padding: .4mm 1.6mm; vertical-align: middle; }
+  .fala { background: var(--dark-2); color: #f4f1ea; border-radius: 3mm; padding: 4mm 5mm; margin: 2mm 0 4mm; font-size: 10.5pt; break-inside: avoid; }
+  .fala::before { content: "Diga assim"; display: block; font-size: 7.5pt; letter-spacing: .14em; text-transform: uppercase; color: #c8a165; font-weight: 650; margin-bottom: 1mm; }
+  .fala.msg::before { content: attr(data-t); }
+  .fala p:last-child { margin-bottom: 0; }
+
+  /* Sumário */
+  .sumario { list-style: none; padding: 0; columns: 2; column-gap: 10mm; }
+  .sumario li { display: flex; gap: 3mm; padding: 1.8mm 0; border-bottom: 1px solid var(--line); break-inside: avoid; margin: 0; }
+  .sumario b { color: var(--gold); font-family: Georgia, serif; min-width: 6mm; }
+
+  /* Passos com telas */
+  .passos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 4mm; }
+  .passo { break-inside: avoid; }
+  .passo .n { display: inline-flex; width: 7mm; height: 7mm; border-radius: 50%; background: var(--gold); color: #fff; align-items: center; justify-content: center; font-weight: 700; font-size: 10pt; margin-bottom: 2mm; }
+  .passo h3 { font-size: 11.5pt; margin: 0 0 1mm; }
+  .passo p { font-size: 9.5pt; color: #3a3833; min-height: 19mm; margin-bottom: 2mm; }
+  .tela { width: 100%; border: 1.6mm solid var(--dark); border-radius: 5mm; display: block; background: var(--dark); }
+  .telas3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; margin-top: 4mm; }
+  .telas3 figure, .lado figure { margin: 0; break-inside: avoid; }
+  figcaption { font-size: 9pt; color: var(--muted); margin-top: 2mm; text-align: center; }
+  .lado { display: grid; grid-template-columns: 52mm 1fr; gap: 8mm; align-items: start; }
+
+  /* Tabelas */
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; break-inside: avoid; }
+  th, td { text-align: left; vertical-align: top; padding: 1.9mm 3mm; border-bottom: 1px solid var(--line); font-size: 10pt; }
+  thead th { font-size: 8.5pt; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--ink); }
+  tbody th { font-weight: 650; width: 34mm; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .preco { font-family: Georgia, serif; font-size: 24pt; font-weight: 700; line-height: 1; }
+  .preco small { display: block; font: 9.5pt "Segoe UI", Arial, sans-serif; color: var(--muted); margin-top: 1.5mm; }
+  .sim li, .nao li { list-style: none; position: relative; }
+  .sim, .nao { padding-left: 6mm; }
+  .sim li::before { content: "✓"; position: absolute; left: -6mm; color: var(--ok); font-weight: 700; }
+  .nao li::before { content: "✕"; position: absolute; left: -6mm; color: var(--no); font-weight: 700; }
+  .check li { list-style: none; position: relative; }
+  .check { padding-left: 7mm; }
+  .check li::before { content: ""; position: absolute; left: -7mm; top: .8mm; width: 3.6mm; height: 3.6mm; border: 1.4px solid var(--ink); border-radius: .8mm; }
+  .obj { break-inside: avoid; margin-bottom: 4mm; }
+  .obj .q { font-weight: 650; font-size: 11pt; margin-bottom: 1mm; }
+  .obj .q::before { content: "“"; color: var(--gold); font-family: Georgia, serif; font-size: 16pt; line-height: 0; margin-right: .5mm; }
+  .obj .q::after { content: "”"; color: var(--gold); font-family: Georgia, serif; font-size: 16pt; line-height: 0; }
+</style>
+</head>
+<body>
+
+<!-- 1. CAPA -->
+<section class="capa">
+  <div>
+    <div class="kicker">Apostila de vendas</div>
+    <h1>Agenda online<br>para <em>barbearias</em></h1>
+    <p class="sub">O que é, como funciona e como vender. Um guia simples para você apresentar o produto e fechar a venda.</p>
+  </div>
+  <div class="pe">
+    <div>Material de uso interno do vendedor.<br>Não entregar ao cliente.</div>
+    <div>Responsável: <b data-v="responsavel"></b><br>Contato: <b data-v="contato"></b></div>
+  </div>
+</section>
+
+<!-- COMO USAR -->
+<section>
+  <div class="kicker">Antes de começar</div>
+  <h2>Como usar esta apostila</h2>
+  <div class="rule"></div>
+  <p class="lead">Leia tudo uma vez, com calma. Leva uns 20 minutos. Depois, deixe a apostila no celular e consulte as páginas de venda quando precisar.</p>
+
+  <div class="grid3">
+    <div class="card soft"><h3>1. Entenda</h3><p>Páginas 3 a 8. Você vai saber explicar o produto com as suas palavras.</p></div>
+    <div class="card soft"><h3>2. Apresente</h3><p>Páginas 9 a 14. Para quem vender, como chegar, o que falar e o que mostrar.</p></div>
+    <div class="card soft"><h3>3. Feche</h3><p>Páginas 15 a 17. Preço, condições, o que não prometer e o que pedir ao cliente.</p></div>
+  </div>
+
+  <h3>O que tem aqui</h3>
+  <ol class="sumario">
+    <li><b>3</b> O produto em uma frase</li>
+    <li><b>4</b> Como o cliente da barbearia agenda</li>
+    <li><b>5</b> Depois de agendar</li>
+    <li><b>6</b> O painel do barbeiro</li>
+    <li><b>7</b> O que cada um ganha</li>
+    <li><b>8</b> Como o cliente é avisado</li>
+    <li><b>9</b> Para quem vender</li>
+    <li><b>10</b> Formas de oferecer</li>
+    <li><b>11</b> Demonstração em 5 minutos</li>
+    <li><b>12</b> Gatilhos para chamar atenção</li>
+    <li><b>13</b> Mensagens prontas</li>
+    <li><b>14</b> Objeções e respostas</li>
+    <li><b>15</b> Oferta e condições</li>
+    <li><b>16</b> O que o produto não faz</li>
+    <li><b>17</b> Checklist do fechamento</li>
+  </ol>
+
+  <div class="nota">
+    <p><strong>Duas palavras que você vai ver muito:</strong></p>
+    <p><strong>Dono</strong> é quem compra de você: o dono da barbearia ou o barbeiro.<br>
+    <strong>Cliente da barbearia</strong> é quem corta o cabelo lá e vai usar o site para marcar horário.</p>
+  </div>
+  <p>Onde aparecer a etiqueta <span class="confirmar">a confirmar</span>, a regra ainda não foi fechada. Pergunte ao responsável antes de responder ao dono.</p>
+</section>
+
+<!-- 2. O PRODUTO -->
+<section>
+  <div class="kicker">Entenda o produto</div>
+  <h2>O produto em uma frase</h2>
+  <div class="rule"></div>
+  <p class="lead" style="font-size:17pt; font-family:Georgia,serif; color:var(--ink); max-width:none;">Um site próprio da barbearia onde o cliente marca o horário sozinho, pelo celular, em menos de um minuto.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>O que é</h3>
+      <ul>
+        <li>Um site com o nome, as fotos, os serviços e os preços da barbearia.</li>
+        <li>Uma agenda online que mostra só os horários livres.</li>
+        <li>Um painel onde o barbeiro vê e controla tudo.</li>
+        <li>Avisos automáticos para o cliente não esquecer o horário.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>O que não é</h3>
+      <ul>
+        <li>Não é um aplicativo de loja. O cliente não precisa baixar nada.</li>
+        <li>Não é um catálogo com várias barbearias. O site é só daquela barbearia.</li>
+        <li>Não exige cadastro nem senha do cliente.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>O problema que resolve</h3>
+  <p>Hoje a maioria das barbearias marca horário por mensagem ou ligação. Isso dá três dores de cabeça:</p>
+  <div class="grid3">
+    <div class="card soft"><h3>Interrupção</h3><p>O barbeiro para o corte para responder mensagem. Ou responde tarde e perde o cliente.</p></div>
+    <div class="card soft"><h3>Confusão</h3><p>Dois clientes no mesmo horário, horário anotado errado, agenda no papel ou na cabeça.</p></div>
+    <div class="card soft"><h3>Falta</h3><p>O cliente esquece e não aparece. A cadeira fica vazia e ninguém ocupa o lugar.</p></div>
+  </div>
+
+  <div class="nota">
+    <p><strong>Para lembrar:</strong> cada instalação atende <strong>uma barbearia com um barbeiro</strong>. Se a barbearia tem vários barbeiros com agendas separadas, o produto ainda não atende (veja a página 16).</p>
+  </div>
+</section>
+
+<!-- 3. COMO O CLIENTE AGENDA -->
+<section>
+  <div class="kicker">Entenda o produto</div>
+  <h2>Como o cliente da barbearia agenda</h2>
+  <div class="rule"></div>
+  <p class="lead">São quatro passos, todos no celular. Não tem cadastro, senha nem aplicativo para baixar.</p>
+
+  <div class="passos">
+    <div class="passo">
+      <span class="n">1</span><h3>Escolhe o serviço</h3>
+      <p>Pode marcar um ou vários. O site soma o preço e o tempo na hora.</p>
+      <img class="tela" src="telas/03-agendar-servicos.png" alt="Tela de escolha de serviços">
+    </div>
+    <div class="passo">
+      <span class="n">2</span><h3>Escolhe dia e hora</h3>
+      <p>Só aparecem horários livres. Não tem como marcar em cima de outro cliente.</p>
+      <img class="tela" src="telas/04-agendar-data-horario.png" alt="Tela de data e horário">
+    </div>
+    <div class="passo">
+      <span class="n">3</span><h3>Informa os dados</h3>
+      <p>Só nome e WhatsApp. O e-mail é opcional.</p>
+      <img class="tela" src="telas/05-agendar-dados.png" alt="Tela de dados do cliente">
+    </div>
+    <div class="passo">
+      <span class="n">4</span><h3>Confirma</h3>
+      <p>Vê o resumo, toca em confirmar e pronto. O horário está marcado.</p>
+      <img class="tela" src="telas/07-agendar-confirmacao.png" alt="Tela de agendamento confirmado">
+    </div>
+  </div>
+
+  <h3>Regras que você precisa saber</h3>
+  <table>
+    <tbody>
+      <tr><th>Até quando marcar</th><td>De hoje até 30 dias para a frente.</td></tr>
+      <tr><th>Antecedência</th><td>O horário precisa começar daqui a pelo menos 1 hora. Não dá para marcar "para agora".</td></tr>
+      <tr><th>Limite</th><td>Cada número de WhatsApp pode ter até 2 horários futuros marcados. Evita que alguém trave a agenda.</td></tr>
+      <tr><th>Horários</th><td>O site calcula sozinho. Um combo de 1 hora só aparece onde cabe 1 hora inteira.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- DEPOIS DE AGENDAR -->
+<section>
+  <div class="kicker">Entenda o produto</div>
+  <h2>Depois de agendar</h2>
+  <div class="rule"></div>
+  <p class="lead">O cliente recebe um link só dele. Por esse link ele vê o horário e pode cancelar, sem ligar para a barbearia.</p>
+
+  <div class="lado">
+    <figure>
+      <img class="tela" src="telas/08-link-do-agendamento.png" alt="Página do agendamento aberta pelo link">
+      <figcaption>A página que o cliente abre pelo link</figcaption>
+    </figure>
+    <div>
+      <h3 style="margin-top:0">O link do agendamento</h3>
+      <ul>
+        <li>Mostra serviço, dia, hora, valor e endereço.</li>
+        <li>É secreto: só quem tem o link vê aquele horário.</li>
+        <li>Tem o botão <strong>Cancelar agendamento</strong>.</li>
+      </ul>
+
+      <h3>Cancelamento</h3>
+      <ul>
+        <li>O cliente cancela sozinho até <strong>2 horas antes</strong>.</li>
+        <li>O horário volta a ficar livre na mesma hora, e outro cliente pode marcar.</li>
+        <li>Faltando menos de 2 horas, o site pede para ele falar direto com a barbearia.</li>
+      </ul>
+
+      <h3>Lembretes</h3>
+      <ul>
+        <li>O cliente é lembrado <strong>24 horas antes</strong> e <strong>2 horas antes</strong>.</li>
+        <li>Horário cancelado não recebe lembrete.</li>
+        <li>A forma do aviso (e-mail, notificação ou WhatsApp) está explicada na página 8.</li>
+      </ul>
+
+      <h3>Vira aplicativo no celular</h3>
+      <ul>
+        <li>O cliente pode colocar o site na tela inicial do celular, com o ícone da barbearia.</li>
+        <li>Abre igual a um aplicativo, sem passar por loja de aplicativos.</li>
+        <li>Funciona em Android e iPhone.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 4. PAINEL -->
+<section>
+  <div class="kicker">Entenda o produto</div>
+  <h2>O painel do barbeiro</h2>
+  <div class="rule"></div>
+  <p class="lead">É a parte que só o barbeiro vê. Ele entra com e-mail e senha, no celular ou no computador.</p>
+
+  <div class="telas3">
+    <figure><img class="tela" src="telas/09-painel-agenda.png" alt="Agenda do dia no painel"><figcaption>Agenda do dia</figcaption></figure>
+    <figure><img class="tela" src="telas/10-painel-servicos.png" alt="Serviços no painel"><figcaption>Serviços e preços</figcaption></figure>
+    <figure><img class="tela" src="telas/11-painel-horarios.png" alt="Horários no painel"><figcaption>Horário de funcionamento</figcaption></figure>
+  </div>
+
+  <h3>O que o barbeiro faz no painel</h3>
+  <div class="grid2">
+    <ul class="sim">
+      <li>Vê a agenda do dia ou da semana, com o total previsto em dinheiro.</li>
+      <li>Abre a conversa com o cliente no WhatsApp com um toque.</li>
+      <li>Marca cada horário como concluído, não compareceu ou cancelado.</li>
+      <li>Vê o histórico de cada cliente.</li>
+    </ul>
+    <ul class="sim">
+      <li>Marca um horário na mão, para quem ligou ou chegou na porta.</li>
+      <li>Muda serviços, preços e duração quando quiser.</li>
+      <li>Define os dias e horários em que atende.</li>
+      <li>Bloqueia folgas, feriados e almoço.</li>
+      <li>Troca textos, foto e contatos da página inicial.</li>
+    </ul>
+  </div>
+  <div class="nota">
+    <p><strong>Ponto forte na venda:</strong> o barbeiro muda preço e horário sozinho, na hora, sem depender de ninguém.</p>
+  </div>
+</section>
+
+<!-- 5. O QUE CADA UM GANHA -->
+<section>
+  <div class="kicker">O que o produto oferece</div>
+  <h2>O que cada um ganha</h2>
+  <div class="rule"></div>
+  <p class="lead">Na venda, fale primeiro do que o dono ganha. Depois mostre que o cliente dele também sai ganhando.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>O cliente da barbearia</h3>
+      <ul class="sim">
+        <li><strong>Marca a qualquer hora.</strong> De madrugada, no domingo, sem esperar resposta.</li>
+        <li><strong>Em menos de um minuto.</strong> Quatro passos, só nome e WhatsApp.</li>
+        <li><strong>Sem baixar nada.</strong> Abre pelo link, direto no navegador.</li>
+        <li><strong>Vê preço e tempo antes.</strong> Sem surpresa na hora de pagar.</li>
+        <li><strong>Não esquece.</strong> Recebe lembrete um dia antes e duas horas antes.</li>
+        <li><strong>Cancela sozinho.</strong> Sem o constrangimento de ligar.</li>
+        <li><strong>Chega e é atendido.</strong> O horário é dele, sem fila.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>O dono da barbearia</h3>
+      <ul class="sim">
+        <li><strong>Para de atender mensagem.</strong> A agenda se enche sozinha enquanto ele trabalha.</li>
+        <li><strong>Não perde cliente fora do horário.</strong> Quem quer marcar às 23h, marca.</li>
+        <li><strong>Sem horário em dobro.</strong> O sistema não deixa dois clientes na mesma hora.</li>
+        <li><strong>Menos faltas.</strong> O lembrete ajuda o cliente a não esquecer.</li>
+        <li><strong>Horário cancelado volta para a agenda.</strong> Outro cliente pode ocupar.</li>
+        <li><strong>Sabe quanto vai entrar.</strong> Total previsto do dia e da semana.</li>
+        <li><strong>Imagem profissional.</strong> Site próprio, com a marca dele.</li>
+        <li><strong>Controle na mão.</strong> Muda preço, horário e folga pelo celular.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="fala">
+    <p>"Hoje o senhor para o corte para responder mensagem. Com o site, o cliente marca sozinho e o senhor só olha a agenda pronta."</p>
+  </div>
+</section>
+
+<!-- COMO O CLIENTE É AVISADO -->
+<section>
+  <div class="kicker">O que o produto oferece</div>
+  <h2>Como o cliente é avisado</h2>
+  <div class="rule"></div>
+  <p class="lead">A barbearia escolhe. Existe uma forma grátis, que já vem no produto, e o WhatsApp automático, que é opcional e tem custo por mensagem.</p>
+
+  <table>
+    <thead><tr><th></th><th>Avisos grátis</th><th>WhatsApp automático (opcional)</th></tr></thead>
+    <tbody>
+      <tr><th>Por onde chega</th><td>E-mail e notificação no celular</td><td>WhatsApp do cliente</td></tr>
+      <tr><th>O que envia</th><td>Confirmação por e-mail. Lembretes de 24 h e 2 h por e-mail e por notificação.</td><td>Confirmação, lembretes de 24 h e 2 h e aviso quando o horário é cancelado.</td></tr>
+      <tr><th>Custo por mensagem</th><td><strong>Nenhum</strong></td><td>Cerca de <strong data-v="whatsMsg"></strong>, cobrado pela Meta (dona do WhatsApp)</td></tr>
+      <tr><th>A barbearia precisa de</th><td>Nada</td><td>Cadastro de empresa na Meta e um número de telefone só para isso</td></tr>
+      <tr><th>Ponto de atenção</th><td>O cliente precisa informar o e-mail ou tocar em "Ativar lembrete". Sem isso, não recebe aviso.</td><td>O custo cresce com o movimento. A ativação leva alguns dias.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2">
+    <div>
+      <h3 style="margin-top:0">Quanto custa o WhatsApp automático</h3>
+      <p>Cada horário marcado gera até 3 mensagens: confirmação e dois lembretes. Dá cerca de <strong data-v="whatsAgendamento"></strong> por horário.</p>
+      <table>
+        <thead><tr><th>Horários no mês</th><th class="num">Mensagens</th><th class="num">Custo por mês</th></tr></thead>
+        <tbody>
+          <tr><td>100</td><td class="num">300</td><td class="num">R$ 10,50</td></tr>
+          <tr><td>200</td><td class="num">600</td><td class="num">R$ 21,00</td></tr>
+          <tr><td>300</td><td class="num">900</td><td class="num">R$ 31,50</td></tr>
+          <tr><td>400</td><td class="num">1.200</td><td class="num">R$ 42,00</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:9pt; color:var(--muted)">Valores aproximados, pela tabela da Meta de <span data-v="whatsData"></span>. A Meta pode mudar o preço.</p>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Como apresentar</h3>
+      <div class="fala">
+        <p>"O aviso por e-mail e notificação já vem no site, sem custo. Se quiser o lembrete no WhatsApp do cliente, a gente ativa. Aí tem um custo pequeno por mensagem: uns R$ 20 por mês para 200 horários."</p>
+      </div>
+      <p><strong>Quem paga as mensagens:</strong> a barbearia. <span class="confirmar">a confirmar</span></p>
+      <div class="nota">
+        <p><strong>Nos dois casos</strong> o barbeiro tem, no painel, um botão que abre a conversa com o cliente no WhatsApp dele. Isso é grátis, mas é manual: ele mesmo escreve a mensagem.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="nota alerta">
+    <p><strong>Vendeu sem WhatsApp? Avise o responsável.</strong> Hoje a tela de agendamento mostra a opção "Receber confirmação e lembretes pelo WhatsApp" mesmo sem o WhatsApp ativado. Ele precisa ajustar o site daquele cliente.</p>
+  </div>
+</section>
+
+<!-- 6. PARA QUEM VENDER -->
+<section>
+  <div class="kicker">Como vender</div>
+  <h2>Para quem vender</h2>
+  <div class="rule"></div>
+  <p class="lead">Não ofereça para todo mundo. Procure a barbearia que já sente o problema. Ela compra mais rápido.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Cliente ideal</h3>
+      <ul class="sim">
+        <li>Barbearia de um barbeiro só, ou o dono que atende sozinho.</li>
+        <li>Marca horário por WhatsApp, Instagram ou caderno.</li>
+        <li>Já tem movimento e reclama de falta ou de mensagem demais.</li>
+        <li>Tem Instagram ativo: já tem onde colocar o link.</li>
+        <li>O dono usa bem o celular.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Não é para agora</h3>
+      <ul class="nao">
+        <li>Barbearia com vários barbeiros, cada um com a sua agenda.</li>
+        <li>Quem quer receber pagamento pelo site.</li>
+        <li>Quem só atende por ordem de chegada e quer continuar assim.</li>
+        <li>Quem já usa outro sistema de agenda e está satisfeito.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Sinais de que a barbearia precisa</h3>
+  <table>
+    <thead><tr><th>O que você vê ou ouve</th><th>O que isso quer dizer</th></tr></thead>
+    <tbody>
+      <tr><td>"Agendamentos pelo direct" ou número de WhatsApp na bio do Instagram</td><td>Marca tudo na mão. É o melhor sinal.</td></tr>
+      <tr><td>O barbeiro pega o celular no meio do corte</td><td>Está perdendo tempo com mensagem.</td></tr>
+      <tr><td>Cliente comenta "mandei mensagem e não respondeu"</td><td>Está perdendo cliente.</td></tr>
+      <tr><td>Caderno ou agenda de papel no balcão</td><td>Risco de erro e de horário em dobro.</td></tr>
+      <tr><td>"O cara marcou e não veio"</td><td>Sofre com falta. Fale do lembrete.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Perguntas para abrir a conversa</h3>
+  <ul>
+    <li>"Como o pessoal marca horário com o senhor hoje?"</li>
+    <li>"Quantas mensagens de agendamento o senhor responde por dia?"</li>
+    <li>"Acontece de cliente marcar e não aparecer?"</li>
+    <li>"Já perdeu cliente porque não conseguiu responder na hora?"</li>
+  </ul>
+  <p>Deixe o dono falar. A dor que ele contar é o que você vai usar para vender.</p>
+</section>
+
+<!-- 7. FORMAS DE OFERECER -->
+<section>
+  <div class="kicker">Como vender</div>
+  <h2>Formas de oferecer</h2>
+  <div class="rule"></div>
+  <p class="lead">Quatro caminhos. O melhor é a visita, porque o dono vê funcionando no seu celular.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>1. Visita na barbearia</h3>
+      <p><strong>Quando:</strong> horário de pouco movimento. Terça a quinta, no meio da manhã ou no começo da tarde. Nunca no sábado.</p>
+      <ul>
+        <li>Espere o barbeiro terminar o corte.</li>
+        <li>Peça 5 minutos e cumpra.</li>
+        <li>Mostre no celular antes de explicar.</li>
+        <li>Saia com uma data marcada para voltar ou com o teste liberado.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2. WhatsApp</h3>
+      <p><strong>Quando:</strong> para marcar a visita ou retomar um contato.</p>
+      <ul>
+        <li>Mensagem curta, com o nome da barbearia.</li>
+        <li>Mande o link do site de demonstração.</li>
+        <li>Uma mensagem por vez. Não mande textão.</li>
+        <li>Modelos prontos na página 13.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>3. Instagram</h3>
+      <p><strong>Quando:</strong> para achar barbearias e fazer o primeiro contato.</p>
+      <ul>
+        <li>Procure por "barbearia" e o nome do bairro.</li>
+        <li>Olhe a bio: se pede para agendar por mensagem, é cliente ideal.</li>
+        <li>Curta e comente um trabalho antes de chamar.</li>
+        <li>Na mensagem, cite algo que você viu no perfil.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>4. Indicação</h3>
+      <p><strong>Quando:</strong> sempre que fechar uma venda.</p>
+      <ul>
+        <li>Pergunte: "O senhor conhece outro barbeiro que também marca por mensagem?"</li>
+        <li>Peça para usar o nome dele na abordagem.</li>
+        <li>Barbeiro confia em barbeiro. É a venda mais fácil.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="nota">
+    <p><strong>Regra de ouro:</strong> o objetivo da primeira conversa não é vender. É fazer o dono ver o site funcionando e aceitar o teste de <span data-v="teste"></span>.</p>
+  </div>
+</section>
+
+<!-- 8. DEMONSTRAÇÃO -->
+<section>
+  <div class="kicker">Como vender</div>
+  <h2>Demonstração em 5 minutos</h2>
+  <div class="rule"></div>
+  <p class="lead">Não explique. Mostre. Coloque o celular na mão do dono e deixe ele marcar um horário.</p>
+
+  <div class="lado">
+    <figure>
+      <img class="tela" src="telas/01-inicio.png" alt="Página inicial do site">
+      <figcaption>Comece por esta tela</figcaption>
+    </figure>
+    <div>
+      <table>
+        <thead><tr><th style="width:16mm">Tempo</th><th>O que fazer</th><th>O que dizer</th></tr></thead>
+        <tbody>
+          <tr><td>30 s</td><td>Abra o site de demonstração no seu celular.</td><td>"Esse seria o site da sua barbearia, com seu nome e suas fotos."</td></tr>
+          <tr><td>1 min</td><td>Entregue o celular. Peça para ele tocar em agendar e escolher um serviço.</td><td>"Faz de conta que o senhor é o cliente. Marca um corte."</td></tr>
+          <tr><td>1 min</td><td>Ele escolhe dia, hora, põe nome e WhatsApp e confirma.</td><td>"Viu? Sem cadastro, sem senha, sem baixar nada."</td></tr>
+          <tr><td>1 min</td><td>Pegue o celular, entre no painel e mostre o horário que ele marcou.</td><td>"E aqui é o que o senhor vê. O horário já está na sua agenda."</td></tr>
+          <tr><td>1 min</td><td>Mostre a troca de preço e o bloqueio de um dia.</td><td>"Mudou o preço? Vai folgar? O senhor mesmo ajusta aqui."</td></tr>
+          <tr><td>30 s</td><td>Faça a oferta do teste.</td><td>"Quer usar <span data-v="teste"></span> sem pagar nada, para ver na prática?"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card soft">
+      <h3>Antes de sair de casa</h3>
+      <ul class="check">
+        <li>Celular carregado e com internet.</li>
+        <li>Site de demonstração aberto e testado.</li>
+        <li>E-mail e senha do painel de demonstração na mão.</li>
+        <li>Esta apostila salva no celular.</li>
+      </ul>
+    </div>
+    <div class="card soft">
+      <h3>Erros que matam a venda</h3>
+      <ul class="nao">
+        <li>Falar de tecnologia. O dono quer saber de cliente e de dinheiro.</li>
+        <li>Mostrar todas as telas. Mostre só o caminho do agendamento e a agenda.</li>
+        <li>Falar o preço antes de mostrar funcionando.</li>
+        <li>Prometer o que não existe (página 16).</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:4mm"><strong>Endereço do site de demonstração e acesso ao painel:</strong> peça ao responsável. <span class="confirmar">a confirmar</span></p>
+</section>
+
+<!-- 9. GATILHOS -->
+<section>
+  <div class="kicker">Como vender</div>
+  <h2>Gatilhos para chamar atenção</h2>
+  <div class="rule"></div>
+  <p class="lead">Gatilho é um motivo que faz a pessoa prestar atenção e decidir. Use um ou dois por conversa, não todos.</p>
+
+  <table>
+    <thead><tr><th style="width:36mm">Gatilho</th><th style="width:52mm">Quando usar</th><th>Frase pronta</th></tr></thead>
+    <tbody>
+      <tr><th>Dor</th><td>No começo, depois que o dono contar um problema.</td><td>"Quanto o senhor perde quando um cliente marca e não aparece?"</td></tr>
+      <tr><th>Facilidade</th><td>Quando ele achar que é complicado.</td><td>"O cliente marca em quatro toques. Só nome e WhatsApp."</td></tr>
+      <tr><th>Ver para crer</th><td>Sempre. É o mais forte.</td><td>"Marca um horário aqui no meu celular para o senhor ver."</td></tr>
+      <tr><th>Teste sem risco</th><td>Quando ele hesitar.</td><td>"São <span data-v="teste"></span> grátis. Se não gostar, não paga nada."</td></tr>
+      <tr><th>Preço pequeno</th><td>Na hora de falar da mensalidade.</td><td>"<span data-v="mensal"></span> por mês é o valor de dois cortes."</td></tr>
+      <tr><th>Parcelamento</th><td>Na hora de falar do valor do site.</td><td>"Fica em <span data-v="parcelas"></span>."</td></tr>
+      <tr><th>Bônus</th><td>No fechamento.</td><td>"E a manutenção o senhor só começa a pagar depois de <span data-v="bonus"></span>."</td></tr>
+      <tr><th>Imagem profissional</th><td>Para quem cuida da marca e do Instagram.</td><td>"Um link com o nome da sua barbearia na bio passa outra imagem."</td></tr>
+      <tr><th>Tempo livre</th><td>Para quem trabalha sozinho.</td><td>"A agenda enche enquanto o senhor corta. Sem pegar no celular."</td></tr>
+      <tr><th>Cliente fora de hora</th><td>Para quem fecha cedo ou não abre domingo.</td><td>"Quem lembra de marcar às 11 da noite, marca. Hoje esse cliente fica sem resposta."</td></tr>
+    </tbody>
+  </table>
+
+  <div class="nota alerta">
+    <p><strong>Só use o que é verdade.</strong> Não diga "últimas vagas", "promoção só hoje" ou "mais de cem barbearias já usam" se não for real. Não prometa um número de redução de faltas: diga que o lembrete <em>ajuda</em> o cliente a não esquecer. Uma promessa falsa custa a venda e as indicações.</p>
+  </div>
+</section>
+
+<!-- 10. MENSAGENS PRONTAS -->
+<section>
+  <div class="kicker">Como vender</div>
+  <h2>Mensagens prontas</h2>
+  <div class="rule"></div>
+  <p class="lead">Copie, troque o que está entre colchetes e envie. Mensagem curta é mensagem lida.</p>
+
+  <div class="fala msg" data-t="Primeiro contato · WhatsApp ou Instagram">
+    <p>Oi, [nome]! Tudo bem? Vi o trabalho da [nome da barbearia] no Instagram, muito bom.</p>
+    <p>Eu trabalho com um site de agendamento para barbearias. O cliente marca o horário sozinho pelo celular e o senhor só confere a agenda.</p>
+    <p>Posso passar aí e mostrar em 5 minutos? Qual o melhor dia?</p>
+  </div>
+
+  <div class="fala msg" data-t="Enviando a demonstração">
+    <p>[nome], aqui está o site de exemplo: [link]</p>
+    <p>Faz um teste: marca um corte como se fosse cliente. Leva menos de um minuto. Depois me conta o que achou.</p>
+  </div>
+
+  <div class="fala msg" data-t="Retorno depois de 2 dias sem resposta">
+    <p>Oi, [nome]! Conseguiu testar o agendamento?</p>
+    <p>Se preferir, eu deixo o site funcionando por <span data-v="teste"></span> sem custo, para o senhor usar com clientes de verdade e decidir depois.</p>
+  </div>
+
+  <div class="fala msg" data-t="Fechamento">
+    <p>[nome], resumindo o que combinamos:</p>
+    <p>• Site da [nome da barbearia]: <span data-v="site"></span>, em <span data-v="parcelas"></span><br>
+    • <span data-v="teste"></span> de uso grátis para testar<br>
+    • Manutenção: os primeiros <span data-v="bonus"></span> são grátis, depois <span data-v="mensal"></span> por mês</p>
+    <p>Para começar, preciso do nome, endereço, serviços com preço e os horários de atendimento. Pode me mandar por aqui?</p>
+  </div>
+
+  <div class="fala msg" data-t="Pedindo indicação · depois que o site estiver no ar">
+    <p>[nome], que bom que deu certo! O senhor conhece outro barbeiro que também marca tudo por mensagem? Se puder me passar o contato, eu falo que foi o senhor que indicou.</p>
+  </div>
+
+  <div class="nota">
+    <p><strong>Dicas:</strong> use o nome da pessoa e o da barbearia. Mande em horário comercial, fora do sábado. Se não responder depois do retorno, espere duas semanas antes de tentar de novo.</p>
+  </div>
+</section>
+
+<!-- 11. OBJEÇÕES -->
+<section>
+  <div class="kicker">Como vender</div>
+  <h2>Objeções e respostas</h2>
+  <div class="rule"></div>
+  <p class="lead">Objeção não é "não". É dúvida. Concorde primeiro, responda depois e termine com uma pergunta.</p>
+
+  <div class="grid2">
+    <div>
+      <div class="obj"><div class="q">Meus clientes já marcam pelo WhatsApp</div>
+        <p>"E vão poder continuar. O site é para o senhor não precisar responder um por um. Quantas mensagens o senhor responde por dia só para marcar horário?"</p></div>
+      <div class="obj"><div class="q">Meu cliente é mais velho, não vai saber usar</div>
+        <p>"São quatro toques, só nome e WhatsApp. E para quem preferir ligar, o senhor marca na mão pelo painel. Quer testar com um cliente seu?"</p></div>
+      <div class="obj"><div class="q">Está caro</div>
+        <p>"Entendo. O site sai por <span data-v="parcela"></span> em quatro vezes. A mensalidade é o valor de dois cortes, e os primeiros <span data-v="bonus"></span> são grátis. Uma falta evitada por mês já cobre boa parte."</p></div>
+      <div class="obj"><div class="q">Não quero pagar mensalidade</div>
+        <p>"Sem problema. O senhor fica só com o site, por <span data-v="site"></span>. Quando precisar de alguma alteração, cada atendimento sai por <span data-v="avulsa"></span>. O plano compensa para quem muda as coisas com frequência."</p></div>
+      <div class="obj"><div class="q">Vou pensar</div>
+        <p>"Claro. Para o senhor pensar com o site na mão, eu libero os <span data-v="teste"></span> grátis. Se não gostar, não paga nada. Posso deixar pronto até quando?"</p></div>
+    </div>
+    <div>
+      <div class="obj"><div class="q">Já tenho Instagram</div>
+        <p>"Ótimo, é lá que o link vai. O Instagram mostra o trabalho; o site fecha o horário. Hoje, quando alguém pede horário no direct, quanto tempo leva para o senhor responder?"</p></div>
+      <div class="obj"><div class="q">Eu atendo por ordem de chegada</div>
+        <p>"Dá para manter os dois. O senhor libera no site só os horários que quiser e bloqueia o resto. Tem cliente seu que desiste quando vê a fila?"</p></div>
+      <div class="obj"><div class="q">E se der problema?</div>
+        <p>"O plano de manutenção cobre suporte e correções. E o agendamento não depende de mim: o senhor controla tudo pelo painel."</p></div>
+      <div class="obj"><div class="q">O cliente vai receber lembrete no WhatsApp?</div>
+        <p>"Pode. O aviso por e-mail e notificação já vem no site, sem custo. O lembrete no WhatsApp é opcional e tem um custo pequeno por mensagem. Explico os dois e o senhor escolhe." (página 8)</p></div>
+      <div class="obj"><div class="q">Tem como receber o pagamento pelo site?</div>
+        <p>"Hoje não. O site cuida do agendamento e o pagamento continua na barbearia, do jeito que o senhor já faz."</p></div>
+    </div>
+  </div>
+
+  <div class="nota">
+    <p><strong>Se não souber responder:</strong> diga "vou confirmar e te respondo ainda hoje". É melhor do que inventar.</p>
+  </div>
+</section>
+
+<!-- 12. OFERTA -->
+<section>
+  <div class="kicker">Feche a venda</div>
+  <h2>Oferta e condições</h2>
+  <div class="rule"></div>
+  <p class="lead">Só fale de preço depois que o dono viu o site funcionando. Apresente nesta ordem: teste, site, manutenção.</p>
+
+  <div class="grid3">
+    <div class="card soft">
+      <div class="kicker">1 · Teste</div>
+      <div class="preco"><span data-v="teste"></span><small>de uso grátis</small></div>
+      <p style="margin-top:3mm">O dono usa antes de pagar. Se não gostar, não paga nada.</p>
+    </div>
+    <div class="card soft">
+      <div class="kicker">2 · Site</div>
+      <div class="preco"><span data-v="site"></span><small>ou <span data-v="parcelas"></span></small></div>
+      <p style="margin-top:3mm">Pago uma vez. Site montado com os dados da barbearia.</p>
+    </div>
+    <div class="card soft">
+      <div class="kicker">3 · Manutenção</div>
+      <div class="preco"><span data-v="mensal"></span><small>por mês, depois de <span data-v="bonus"></span> grátis</small></div>
+      <p style="margin-top:3mm">Opcional. O dono pode ficar só com o site.</p>
+    </div>
+  </div>
+
+  <h3>As duas formas de contratar</h3>
+  <table>
+    <thead><tr><th></th><th>Com plano de manutenção</th><th>Só o site</th></tr></thead>
+    <tbody>
+      <tr><th>Site</th><td><span data-v="site"></span> em <span data-v="parcelas"></span></td><td><span data-v="site"></span> em <span data-v="parcelas"></span></td></tr>
+      <tr><th>Mensalidade</th><td><span data-v="bonus"></span> grátis, depois <span data-v="mensal"></span> por mês</td><td>Não tem</td></tr>
+      <tr><th>Manutenção</th><td>Incluída no plano</td><td><span data-v="avulsa"></span> cada vez que precisar</td></tr>
+      <tr><th>Para quem é</th><td>Quem quer suporte e muda o site com frequência</td><td>Quem quase não muda nada</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2">
+    <div>
+      <h3 style="margin-top:0">O que a manutenção cobre <span class="confirmar">a confirmar</span></h3>
+      <ul class="sim">
+        <li>Site no ar e funcionando.</li>
+        <li>Alterações de textos, fotos, serviços e preços a pedido.</li>
+        <li>Correções.</li>
+        <li>Suporte por WhatsApp.</li>
+      </ul>
+      <p>O WhatsApp automático não entra na manutenção: o custo das mensagens é por conta da barbearia (página 8). <span class="confirmar">a confirmar</span></p>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Como apresentar o preço</h3>
+      <div class="fala">
+        <p>"O senhor testa <span data-v="teste"></span> sem pagar. Gostando, o site fica em <span data-v="parcelas"></span>. A manutenção o senhor só começa a pagar no quarto mês: <span data-v="mensal"></span>, o valor de dois cortes."</p>
+      </div>
+      <p>Fale a parcela, não o total. Depois espere o dono responder.</p>
+    </div>
+  </div>
+
+  <div class="nota alerta">
+    <p><strong>Pergunte ao responsável antes de prometer</strong> <span class="confirmar">a confirmar</span>: como funciona o teste de <span data-v="teste"></span> (site de exemplo ou já com os dados da barbearia) e o que acontece com o site de quem não contrata a manutenção.</p>
+  </div>
+</section>
+
+<!-- 13. O QUE NÃO FAZ + FAQ -->
+<section>
+  <div class="kicker">Feche a venda</div>
+  <h2>O que o produto não faz</h2>
+  <div class="rule"></div>
+  <p class="lead">Prometer o que não existe faz o cliente cancelar e falar mal. Se o dono pedir algo desta lista, diga que hoje não tem.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Hoje não tem</h3>
+      <ul class="nao">
+        <li><strong>Pagamento pelo site.</strong> O cliente paga na barbearia.</li>
+        <li><strong>Vários barbeiros.</strong> É uma agenda só, de um barbeiro.</li>
+        <li><strong>Cadastro de cliente com senha.</strong> O cliente usa nome e WhatsApp.</li>
+        <li><strong>Programa de fidelidade</strong> ou cartão de pontos.</li>
+        <li><strong>Robô que conversa no WhatsApp.</strong> O sistema só envia avisos.</li>
+        <li><strong>Mensagens de promoção</strong> em massa para os clientes.</li>
+        <li><strong>Remarcar pelo WhatsApp.</strong> O cliente cancela e marca de novo.</li>
+        <li><strong>Venda de produtos</strong>, estoque ou caixa.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>O que dizer</h3>
+      <div class="fala">
+        <p>"Hoje o site não faz isso. Ele resolve o agendamento, que é onde o senhor perde mais tempo. Vou passar a sua sugestão para o responsável."</p>
+      </div>
+      <p>Anote o pedido e avise o responsável. Pedidos repetidos ajudam a decidir o que entra depois.</p>
+    </div>
+  </div>
+
+  <h3>Perguntas frequentes</h3>
+  <table>
+    <tbody>
+      <tr><th style="width:62mm">O cliente precisa baixar aplicativo?</th><td>Não. Abre pelo link, em iPhone, Android ou computador.</td></tr>
+      <tr><th>Dois clientes podem marcar o mesmo horário?</th><td>Não. Quem confirmar primeiro fica com o horário; o outro é avisado para escolher outro.</td></tr>
+      <tr><th>O barbeiro pode marcar para quem ligou?</th><td>Sim, pelo painel, em qualquer horário livre.</td></tr>
+                  <tr><th>Os dados do cliente ficam seguros?</th><td>O site pede só nome e WhatsApp. Cada cliente vê só o próprio horário. A agenda completa fica no painel, com senha.</td></tr>
+      <tr><th>Prazo de entrega e endereço próprio do site?</th><td>Pergunte ao responsável. <span class="confirmar">a confirmar</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 14. CHECKLIST -->
+<section>
+  <div class="kicker">Feche a venda</div>
+  <h2>Checklist do fechamento</h2>
+  <div class="rule"></div>
+  <p class="lead">O dono disse sim. Antes de sair, pegue tudo o que o responsável precisa para montar o site.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Dados da barbearia</h3>
+      <ul class="check">
+        <li>Nome da barbearia, como deve aparecer no site</li>
+        <li>Endereço completo</li>
+        <li>WhatsApp de contato</li>
+        <li>E-mail e Instagram</li>
+        <li>Nome do barbeiro e uma frase sobre ele</li>
+        <li>E-mail que o barbeiro vai usar para entrar no painel</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Serviços e horários</h3>
+      <ul class="check">
+        <li>Lista de serviços, com preço e duração de cada um</li>
+        <li>Combos, se tiver (exemplo: corte + barba)</li>
+        <li>Dias e horários de atendimento</li>
+        <li>Horário de almoço</li>
+        <li>Folgas e feriados já marcados</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Fotos</h3>
+      <ul class="check">
+        <li>Uma foto principal da barbearia ou de um corte</li>
+        <li>Até 8 fotos de trabalhos para a galeria</li>
+        <li>Foto do barbeiro</li>
+        <li>Logotipo, se tiver</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>O que foi combinado</h3>
+      <ul class="check">
+        <li>Com plano de manutenção ou só o site</li>
+        <li>Forma de pagamento e número de parcelas</li>
+        <li>Avisos grátis ou WhatsApp automático</li>
+        <li>Data de início do teste de <span data-v="teste"></span></li>
+        <li>Quem indicou, se foi indicação</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Depois da venda</h3>
+  <ol>
+    <li>Envie tudo ao responsável no mesmo dia.</li>
+    <li>Avise o dono quando o site estiver pronto e mostre como entrar no painel.</li>
+    <li>Peça para ele colocar o link na bio do Instagram e no status do WhatsApp.</li>
+    <li>Volte a falar com ele no 5º dia do teste. Pergunte quantos horários já entraram pelo site.</li>
+    <li>Com o site no ar e o dono satisfeito, peça uma indicação.</li>
+  </ol>
+
+  <div class="nota">
+    <p><strong>Resumo da venda em três frases:</strong> O cliente marca sozinho, em menos de um minuto. O senhor para de responder mensagem e vê a agenda pronta. E testa <span data-v="teste"></span> sem pagar nada.</p>
+  </div>
+</section>
+
+</body>
+</html>

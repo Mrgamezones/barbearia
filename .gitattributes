@@ -1,0 +1,15 @@
+# Fins de linha LF para arquivos executados dentro de containers Linux.
+* text=auto
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+docker-compose.yml text eol=lf
+*.sh text eol=lf
+*.mjs text eol=lf
+.env.example text eol=lf
+supabase/**/*.sql text eol=lf
+
+# Binários
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
