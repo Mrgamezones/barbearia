@@ -182,7 +182,7 @@ npm run handbook:pdf       # gera o PDF de novo; avisa se alguma seção passar 
 | Comando | O que faz |
 |---|---|
 | `npm run dev` | servidor de desenvolvimento |
-| `npm run build` / `npm start` | build de produção (webpack, exigido pelo service worker do PWA) e servidor de produção |
+| `npm run build` / `npm start` | build de produção (webpack, exigido pelo service worker do PWA) e servidor de produção. O build exige o Supabase no ar: antes de compilar, `scripts/check-supabase.mjs` testa a API e, se ela não responder, para com "Build interrompido: Supabase inacessível em …" (suba com `npm run docker:up` ou `npx supabase start`) |
 | `npm run lint` | ESLint |
 | `npm test` | testes unitários (Vitest) |
 | `npm run test:e2e` | testes ponta a ponta (Playwright) |

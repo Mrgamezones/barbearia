@@ -87,7 +87,11 @@ test.describe("hero", () => {
   test("título e subtítulo com contraste AA sobre a foto", async ({ page }) => {
     await page.goto("/");
     const hero = page.getByTestId("hero");
-    await page.waitForFunction(() => [...document.images].every((i) => i.complete));
+    // Só as imagens do hero: as da galeria têm lazy load e, fora da tela, nunca terminam de carregar.
+    await expect(hero.locator("img")).not.toHaveCount(0);
+    await expect
+      .poll(() => hero.locator("img").evaluateAll((imgs) => imgs.every((i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0)))
+      .toBe(true);
     for (const selector of ["h1 span:first-child", "h1 span.text-gold", "p.eyebrow", "h1 + p"]) {
       const el = hero.locator(selector).first();
       const color = await el.evaluate((e) => getComputedStyle(e).color);

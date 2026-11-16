@@ -7,6 +7,7 @@ export const AUTH_COOKIE_NAME = "sb-barbearia-auth";
 /**
  * URL e anon key usadas pelo SERVIDOR. Lidas em tempo de execução:
  * `SUPABASE_INTERNAL_URL`/`SUPABASE_ANON_KEY` (Docker) têm prioridade sobre as `NEXT_PUBLIC_*` (desenvolvimento/Vercel).
+ * A verificação antes do build (`scripts/check-supabase.mjs`) repete esta precedência: mantenha as duas iguais.
  */
 export function publicEnv() {
   const url = process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;

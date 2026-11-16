@@ -195,7 +195,8 @@ No plano gratuito, o Supabase permite 2 projetos ativos por conta e pausa um pro
 
 | Sintoma | Causa provável | O que fazer |
 |---|---|---|
-| Build falha com "Defina SUPABASE_INTERNAL_URL... ou NEXT_PUBLIC_SUPABASE_URL" | variáveis não cadastradas antes do build | cadastre (3.3) e faça **Deploy project without cache** |
+| Build falha com "Build interrompido: Supabase não configurado." | variáveis não cadastradas antes do build | cadastre (3.3) e faça **Deploy project without cache** |
+| Build falha com "Build interrompido: Supabase inacessível em https://... (motivo)" | a verificação antes do build (`scripts/check-supabase.mjs`) não conseguiu falar com o Supabase: URL errada, projeto pausado ou ainda não criado | confira `NEXT_PUBLIC_SUPABASE_URL` e a anon key (3.3) e se o projeto está ativo no painel do Supabase; depois, novo deploy |
 | Build falha com "Secrets scanning found secrets in build" | o Netlify achou o valor de uma variável no código gerado | se for uma `NEXT_PUBLIC_*`, ela já está liberada no `netlify.toml`; se for outra, confira se a chave secreta não foi cadastrada com nome `NEXT_PUBLIC_*` por engano |
 | Build falha mencionando `output: standalone` | adaptador do Netlify e a opção usada pelo Docker | em `next.config.ts`, troque `output: "standalone"` por `output: process.env.NETLIFY ? undefined : "standalone"` |
 | Home sem nome ou com dados antigos | banco vazio no momento do build | rode o passo 2.3 e espere 5 minutos, ou faça um novo deploy |
