@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { formatDateLong, formatDateShort, formatDuration, formatPhone, formatPrice, formatTime, toLocalDateKey, whatsappLink } from "./format";
+import { formatAddress, formatDateLong, formatDateShort, formatDuration, formatPhone, formatPrice, formatTime, toLocalDateKey, whatsappLink } from "./format";
 
 describe("formatPrice", () => {
   it("formata centavos em BRL", () => {
@@ -38,5 +38,23 @@ describe("telefone", () => {
   });
   it("gera link do WhatsApp", () => {
     expect(whatsappLink("+5511999998888", "Olá")).toBe("https://wa.me/5511999998888?text=Ol%C3%A1");
+  });
+});
+
+describe("formatAddress", () => {
+  const empty = { street: "", number: "", complement: "", district: "", city: "", state: "", postal_code: "" };
+  it("endereço completo no formato brasileiro", () => {
+    expect(
+      formatAddress({ street: "Rua Exemplo", number: "100", complement: "sala 2", district: "Centro", city: "São Paulo", state: "sp", postal_code: "01000000" }),
+    ).toBe("Rua Exemplo, 100, sala 2 – Centro, São Paulo – SP, 01000-000");
+  });
+  it("só logradouro e número, sem separadores sobrando", () => {
+    expect(formatAddress({ ...empty, street: "Rua Abaré", number: "2" })).toBe("Rua Abaré, 2");
+  });
+  it("sem bairro e sem CEP", () => {
+    expect(formatAddress({ ...empty, street: "Rua Abaré", number: "2", city: "Salvador", state: "BA" })).toBe("Rua Abaré, 2 – Salvador – BA");
+  });
+  it("vazio", () => {
+    expect(formatAddress(empty)).toBe("");
   });
 });

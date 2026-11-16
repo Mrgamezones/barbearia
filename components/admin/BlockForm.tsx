@@ -1,11 +1,13 @@
 "use client";
 import { useState, useTransition } from "react";
-import { createBlock, type AffectedAppointment } from "@/app/admin/(painel)/bloqueios/actions";
+import { createBlock, type AffectedAppointment } from "@/app/painel/[slug]/bloqueios/actions";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import { formatDateShort, formatTime } from "@/lib/format";
+import { usePanelSlug } from "./usePanelSlug";
 
 export function BlockForm({ today }: { today: string }) {
+  const slug = usePanelSlug();
   const [form, setForm] = useState({ date: today, endDate: "", fullDay: true, startTime: "13:00", endTime: "19:00", reason: "" });
   const [affected, setAffected] = useState<AffectedAppointment[] | null>(null);
   const [message, setMessage] = useState<{ type: "error" | "ok"; text: string } | null>(null);
@@ -14,7 +16,7 @@ export function BlockForm({ today }: { today: string }) {
   function submit(confirmed: boolean) {
     setMessage(null);
     start(async () => {
-      const r = await createBlock(form, confirmed);
+      const r = await createBlock(slug, form, confirmed);
       if (r.ok) {
         setAffected(null);
         setMessage({ type: "ok", text: "Bloqueio salvo." });

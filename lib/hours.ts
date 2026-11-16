@@ -3,13 +3,14 @@ import type { BusinessHour } from "@/lib/types";
 export const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"] as const;
 const SHORT = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"] as const;
 
-/** "09:00:00" -> "09h"; "09:30:00" -> "09h30" */
+/** "09:00:00" -> "9h"; "12:30:00" -> "12h30" (sem zero à esquerda, como no padrão oficial brasileiro). */
 export function shortTime(t: string): string {
   const [h, m] = t.split(":");
-  return m === "00" ? `${h}h` : `${h}h${m}`;
+  const hour = String(Number(h));
+  return m === "00" ? `${hour}h` : `${hour}h${m}`;
 }
 
-/** Linha por dia: "Terça — 09h às 19h" ou "Domingo — Fechado". */
+/** Linha por dia: "Terça — 9h às 19h" ou "Domingo — Fechado". */
 export function hoursByDay(hours: BusinessHour[]) {
   return WEEKDAYS.map((label, weekday) => {
     const h = hours.find((x) => x.weekday === weekday);
@@ -20,7 +21,7 @@ export function hoursByDay(hours: BusinessHour[]) {
 
 /**
  * Resumo compacto dos dias abertos, agrupando dias seguidos com o mesmo horário.
- * Ex.: "TER–SÁB: 09h às 19h" ou "SEG, QUA: 09h às 18h · SÁB: 08h às 12h".
+ * Ex.: "TER–SÁB: 9h às 19h" ou "SEG, QUA: 9h às 18h · SÁB: 8h às 12h".
  */
 export function hoursSummary(hours: BusinessHour[]): string {
   const open = hoursByDay(hours).filter((d) => d.text !== "Fechado");

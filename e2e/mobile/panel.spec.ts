@@ -1,4 +1,5 @@
 import { api, devicePhone, deviceSlot, evidence, expect, expectNoHorizontalScroll, LOCAL_ADMIN, test, timeLabel } from "./helpers";
+import { panel, SHOP } from "../helpers/shop";
 
 test("painel: login do admin local e agenda do dia com os agendamentos criados", async ({ page, baseURL }, info) => {
   // Agendamento próprio do aparelho (outro dia e telefone que o do cenário de agendamento): independe da ordem dos cenários.
@@ -9,21 +10,21 @@ test("painel: login do admin local e agenda do dia com os agendamentos criados",
   const created = await api<{ ok: boolean }>(
     baseURL!,
     "/rest/v1/rpc/create_booking",
-    { p_service_ids: [slot.serviceId], p_starts_at: slot.iso, p_name: name, p_phone: phone },
+    { p_shop_slug: SHOP, p_service_ids: [slot.serviceId], p_starts_at: slot.iso, p_name: name, p_phone: phone },
     { serviceRole: true },
   );
   expect(created.ok).toBe(true);
 
-  await page.goto("/admin");
-  await expect(page).toHaveURL(/\/admin\/login/);
+  await page.goto(panel());
+  await expect(page).toHaveURL(/\/painel\/login/);
   await page.getByLabel("E-mail").fill(LOCAL_ADMIN.email);
   await page.getByLabel("Senha").fill(LOCAL_ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).tap();
-  await expect(page).not.toHaveURL(/\/admin\/login/);
+  await expect(page).not.toHaveURL(/\/painel\/login/);
   await evidence(page, info, "painel-agenda-hoje");
 
   // Sessão mantida entre navegações (cookie compartilhado navegador × Server Components)
-  await page.goto(`/admin?data=${slot.date}`);
+  await page.goto(`${panel()}?data=${slot.date}`);
   const item = page.locator("li, article, tr").filter({ hasText: name }).first();
   await expect(item).toBeVisible();
   await expect(item).toContainText(timeLabel(slot.iso));

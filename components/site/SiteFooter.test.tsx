@@ -1,11 +1,21 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { BusinessHour, BusinessSettings, Service } from "@/lib/types";
+import type { BusinessHour, Service, Shop } from "@/lib/types";
 import { SiteFooter } from "./SiteFooter";
 
-const settings: BusinessSettings = {
+const shop: Shop = {
+  id: "5a000000-0000-4000-8000-000000000001",
+  slug: "demonstracao",
+  is_demo: true,
+  notifications_enabled: false,
   name: "Barbearia Modelo",
-  address: "Rua Exemplo, 100",
+  street: "Rua Exemplo",
+  number: "100",
+  complement: "",
+  district: "Centro",
+  city: "São Paulo",
+  state: "SP",
+  postal_code: "",
   whatsapp: "+5511999999999",
   about: "Frase curta.",
   timezone: "America/Sao_Paulo",
@@ -40,29 +50,30 @@ const services: Service[] = Array.from({ length: 7 }, (_, i) => ({
 
 describe("<SiteFooter>", () => {
   it("mostra o domingo fechado como \"Domingo — Fechado\" e os dias abertos com horário", () => {
-    render(<SiteFooter settings={settings} hours={hours} services={services} />);
+    render(<SiteFooter shop={shop} hours={hours} services={services} />);
     const items = within(screen.getByTestId("footer-hours")).getAllByRole("listitem").map((li) => li.textContent);
     expect(items[0]).toBe("Domingo — Fechado");
     expect(items[1]).toBe("Segunda — Fechado");
-    expect(items[2]).toBe("Terça — 09h às 19h");
+    expect(items[2]).toBe("Terça — 9h às 19h");
     expect(items).toHaveLength(7);
   });
 
   it("lista até 5 serviços e \"Outros serviços\"", () => {
-    render(<SiteFooter settings={settings} hours={hours} services={services} />);
+    render(<SiteFooter shop={shop} hours={hours} services={services} />);
     const links = within(screen.getByTestId("footer-services")).getAllByRole("link");
     expect(links.map((l) => l.textContent)).toEqual(["Serviço 1", "Serviço 2", "Serviço 3", "Serviço 4", "Serviço 5", "Outros serviços"]);
-    expect(links.at(-1)).toHaveAttribute("href", "/servicos");
+    expect(links.at(-1)).toHaveAttribute("href", "/barbearia/demonstracao/servicos");
+    expect(links[0]).toHaveAttribute("href", "/barbearia/demonstracao/agendar?servicos=s0");
   });
 
   it("contato com telefone, e-mail e link de mapa; redes; copyright do ano atual e privacidade", () => {
-    render(<SiteFooter settings={settings} hours={hours} services={services} />);
+    render(<SiteFooter shop={shop} hours={hours} services={services} />);
     expect(screen.getByRole("link", { name: /\(11\) 99999-9999/ })).toHaveAttribute("href", expect.stringContaining("wa.me/5511999999999"));
     expect(screen.getByRole("link", { name: /contato@exemplo.com/ })).toHaveAttribute("href", "mailto:contato@exemplo.com");
-    expect(screen.getByRole("link", { name: /abrir no mapa/ })).toHaveAttribute("href", expect.stringContaining("google.com/maps"));
+    expect(screen.getByRole("link", { name: "Rua Exemplo, 100 – Centro, São Paulo – SP (abrir no mapa)" })).toHaveAttribute("href", expect.stringContaining("google.com/maps"));
     expect(screen.getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://instagram.com/exemplo");
     expect(screen.getByRole("link", { name: "Conversar pelo WhatsApp" })).toBeInTheDocument();
     expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()} Barbearia Modelo`))).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Política de privacidade" })).toHaveAttribute("href", "/privacidade");
+    expect(screen.getByRole("link", { name: "Política de privacidade" })).toHaveAttribute("href", "/barbearia/demonstracao/privacidade");
   });
 });

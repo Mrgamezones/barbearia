@@ -5,7 +5,8 @@ import { EMULATION_LIMITATIONS, MOBILE_DEVICES, type MobileProject } from "./dev
 
 export const BOOKING_SERVICE = "Corte + Barba";
 export const PANEL_SERVICE = "Corte de cabelo";
-export const LOCAL_ADMIN = { email: "admin@barbearia.local", password: "admin-local-123" };
+/** Dono da barbearia de teste no seed (os cenários mobile rodam nela). */
+export const LOCAL_ADMIN = { email: "dono-teste@barbearia.local", password: "admin-local-123" };
 export const PLAN_FILE = join(__dirname, "..", "results", "plan.json");
 const TZ = "America/Sao_Paulo";
 

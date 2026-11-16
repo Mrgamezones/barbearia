@@ -11,8 +11,9 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  // Build autocontido para a imagem Docker (.next/standalone/server.js).
-  output: "standalone",
+  // Build autocontido para a imagem Docker (.next/standalone/server.js). No Netlify (NETLIFY=true nos builds dele)
+  // o adaptador gera a própria saída, e o standalone atrapalha: fica desligado lá.
+  output: process.env.NETLIFY ? undefined : "standalone",
   // Evita que o Next use um package-lock.json de uma pasta acima como raiz do projeto.
   outputFileTracingRoot: path.join(__dirname),
 };

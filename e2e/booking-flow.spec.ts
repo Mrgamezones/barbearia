@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { adminDb } from "./helpers/db";
 import { chooseDateAndTime, chooseServices, continueIfMobile, fillCustomer, insertAppointment, prettyPhone, randomIp, submitCustomer } from "./helpers/booking";
 import { cleanupByPhone, serviceId, testPhone } from "./helpers/slots";
+import { SHOP, site } from "./helpers/shop";
 
 const phones: string[] = [];
 test.afterAll(async () => cleanupByPhone(phones));
@@ -13,7 +14,7 @@ test.beforeEach(async ({ context }) => {
 
 test.describe("fluxo /agendar", () => {
   test("não avança sem serviço selecionado", async ({ page }) => {
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     if (test.info().project.name === "desktop") {
       // Desktop: as colunas ficam visíveis, mas confirmar só é possível com serviço e horário.
       await expect(page.getByRole("button", { name: "Confirmar agendamento" })).toBeDisabled();
@@ -28,7 +29,7 @@ test.describe("fluxo /agendar", () => {
   test("caminho feliz: serviços → data → horário → dados → confirmação", async ({ page }) => {
     const phone = testPhone();
     phones.push(phone);
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
 
     await page.getByRole("checkbox", { name: /^Corte de cabelo/ }).click();
     await page.getByRole("checkbox", { name: /^Bigode/ }).click();
@@ -51,7 +52,7 @@ test.describe("fluxo /agendar", () => {
     await expect(details).toContainText("Corte de cabelo");
     await expect(details).toContainText("Bigode");
     await expect(details).toContainText("R$ 60,00");
-    await expect(details).toContainText("Rua Exemplo");
+    await expect(details).toContainText("Avenida Teste, 200 – Jardim, Campinas – SP");
     await expect(page.getByTestId("booking-status")).toHaveText("Confirmado");
 
     const { data } = await adminDb().from("appointments").select("status,total_cents,whatsapp_opt_in").eq("customer_phone", phone).single();
@@ -61,7 +62,7 @@ test.describe("fluxo /agendar", () => {
   test("desmarcar o WhatsApp grava o agendamento sem consentimento", async ({ page }) => {
     const phone = testPhone();
     phones.push(phone);
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     await chooseServices(page, ["Barba"]);
     await chooseDateAndTime(page);
     await page.getByLabel("Nome", { exact: true }).fill("Sem Zap");
@@ -84,7 +85,7 @@ test.describe("fluxo /agendar", () => {
   });
 
   test("telefone inválido mostra mensagem e não avança", async ({ page }) => {
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     await chooseServices(page, ["Barba"]);
     await chooseDateAndTime(page);
     await page.getByLabel("Nome", { exact: true }).fill("Teste");
@@ -98,14 +99,14 @@ test.describe("fluxo /agendar", () => {
     const phone = testPhone();
     const other = testPhone();
     phones.push(phone, other);
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     await chooseServices(page, ["Barba"]);
     await chooseDateAndTime(page);
     await fillCustomer(page, prettyPhone(phone));
 
     // Outra pessoa confirma o mesmo horário antes.
     const slot = new URL(page.url()).searchParams.get("hora")!;
-    const { data } = await adminDb().rpc("create_booking", {
+    const { data } = await adminDb().rpc("create_booking", { p_shop_slug: SHOP,
       p_service_ids: [await serviceId("Barba")],
       p_starts_at: slot,
       p_name: "Outra Pessoa",
@@ -126,23 +127,23 @@ test.describe("fluxo /agendar", () => {
   test("excesso de tentativas do mesmo IP mostra erro amigável", async ({ page, context }) => {
     const ip = "198.51.100.77";
     await context.setExtraHTTPHeaders({ "x-forwarded-for": ip });
-    await adminDb().from("rate_limits").upsert({ key: `booking:${ip}`, window_start: new Date().toISOString(), hits: 5 });
+    await adminDb().from("rate_limits").upsert({ key: `booking:${SHOP}:${ip}`, window_start: new Date().toISOString(), hits: 5 });
     const phone = testPhone();
     phones.push(phone);
 
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     await chooseServices(page, ["Bigode"]);
     await chooseDateAndTime(page);
     await fillCustomer(page, prettyPhone(phone));
     await page.getByRole("button", { name: "Confirmar agendamento" }).click();
     await expect(page.locator("main").getByRole("alert")).toContainText("Muitas tentativas");
-    await adminDb().from("rate_limits").delete().eq("key", `booking:${ip}`);
+    await adminDb().from("rate_limits").delete().eq("key", `booking:${SHOP}:${ip}`);
   });
 });
 
 test.describe("link de gerenciamento /agendamento/[token]", () => {
   test("link inválido mostra 'não encontrado' sem dados", async ({ page }) => {
-    await page.goto("/agendamento/token-que-nao-existe-1234567890");
+    await page.goto(site() + "/agendamento/token-que-nao-existe-1234567890");
     await expect(page.getByRole("heading", { name: "Agendamento não encontrado" })).toBeVisible();
     await expect(page.getByTestId("booking-details")).toHaveCount(0);
   });
@@ -154,7 +155,7 @@ test.describe("link de gerenciamento /agendamento/[token]", () => {
     startsAt.setUTCMinutes(0, 0, 0);
     const { id, token } = await insertAppointment({ startsAt, phone, minutes: 30, whatsappOptIn: true });
 
-    await page.goto(`/agendamento/${token}`);
+    await page.goto(`${site()}/agendamento/${token}`);
     await expect(page.getByTestId("booking-status")).toHaveText("Confirmado");
     await page.getByRole("button", { name: "Cancelar agendamento" }).click();
     await page.getByRole("button", { name: "Sim, cancelar" }).click();
@@ -181,14 +182,14 @@ test.describe("link de gerenciamento /agendamento/[token]", () => {
     const startsAt = new Date(Date.now() + 60 * 60_000);
     const { id, token } = await insertAppointment({ startsAt, phone, whatsappOptIn: true });
 
-    await page.goto(`/agendamento/${token}`);
+    await page.goto(`${site()}/agendamento/${token}`);
     await expect(page.getByTestId("too-late")).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancelar agendamento" })).toHaveCount(0);
     // O servidor também recusa (too_late) e não gera aviso de cancelamento.
-    const { data: tooLate } = await adminDb().rpc("cancel_booking_by_token", { p_token: token });
+    const { data: tooLate } = await adminDb().rpc("cancel_booking_by_token", { p_shop_slug: SHOP, p_token: token });
     expect(tooLate).toEqual({ ok: false, error: "too_late" });
     const { count } = await adminDb().from("notification_log").select("*", { count: "exact", head: true }).eq("appointment_id", id);
     expect(count).toBe(0);
-    await expect(page.getByRole("main").getByRole("link", { name: /WhatsApp/ })).toHaveAttribute("href", /wa\.me\/5511999999999/);
+    await expect(page.getByRole("main").getByRole("link", { name: /WhatsApp/ })).toHaveAttribute("href", /wa\.me\/5519988887777/);
   });
 });

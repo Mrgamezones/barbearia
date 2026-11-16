@@ -1,6 +1,17 @@
 # Barbearia — agendamento online (PWA)
 
-Site de agendamento para barbearia: o cliente escolhe serviços, data e horário e confirma só com nome e WhatsApp, sem criar conta. O barbeiro gerencia agenda, serviços, horários e bloqueios num painel restrito.
+Site de agendamento para barbearias: o cliente escolhe serviços, data e horário e confirma só com nome e WhatsApp, sem criar conta. O barbeiro gerencia agenda, serviços, horários e bloqueios num painel restrito.
+
+Várias barbearias usam o mesmo sistema, no mesmo domínio e no mesmo banco, cada uma com seu endereço (*slug*):
+
+| Endereço | O que é |
+|---|---|
+| `/barbearia/<slug>` | site da barbearia (início, `/agendar`, `/servicos`, `/privacidade`, `/agendamento/<token>`) |
+| `/painel/<slug>` | painel do dono, com login; cada dono só acessa as próprias barbearias |
+| `/painel` | entrada geral: leva à barbearia do dono ou lista as dele, se tiver várias |
+| `/` | redireciona para a demonstração, `/barbearia/demonstracao`, usada para apresentar o sistema |
+
+O isolamento entre barbearias é garantido no banco (RLS e funções por barbearia), não só nas telas. A demonstração não envia WhatsApp, e-mail nem lembretes.
 
 Stack: Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · Supabase (Postgres, Auth) · PWA (Serwist) · Vitest · Playwright.
 
@@ -34,7 +45,8 @@ Preencha o `.env.local`:
 
 URLs locais:
 
-- Site: http://localhost:3000
+- Site: http://localhost:3000 (redireciona para a demonstração) · barbearia de teste: http://localhost:3000/barbearia/barbearia-teste
+- Painel: http://localhost:3000/painel — **`admin@barbearia.local`** (demonstração) ou **`dono-teste@barbearia.local`** (barbearia de teste), senha **`admin-local-123`**
 - Supabase Studio: http://127.0.0.1:56323
 - Caixa de e-mails de teste (Mailpit): http://127.0.0.1:56324
 
@@ -61,7 +73,7 @@ O `.env.example` já vem com valores locais de teste (chaves de demonstração d
 URLs:
 
 - Site: http://localhost:3000 · saúde: http://localhost:3000/api/health
-- Painel: http://localhost:3000/admin — admin local de teste **`admin@barbearia.local`** / **`admin-local-123`** (criado pelo `seed.sql`, que só roda localmente)
+- Painel: http://localhost:3000/painel — donos locais de teste **`admin@barbearia.local`** (demonstração) e **`dono-teste@barbearia.local`** (barbearia de teste), senha **`admin-local-123`** (criados pelo `seed.sql`, que só roda localmente)
 - Supabase Studio: http://localhost:56323
 - E-mails de teste (Mailpit): http://localhost:56324 — no Docker os e-mails vão por SMTP para esta caixa e **nunca saem para a internet**
 
@@ -105,15 +117,40 @@ Argumentos extras vão para o Playwright, por exemplo `npm run docker:mobile -- 
 - ✅ Layout e toque nas medidas reais dos aparelhos, motores Chromium e WebKit, idioma/fuso, service worker e modo offline, meta tags de app web, fluxos completos contra o build de produção.
 - ❌ Não substitui aparelho real para: **instalação do PWA no iOS** (Adicionar à Tela de Início), **notificações push**, e particularidades do **Safari do iOS** — o WebKit do Playwright não é o Safari (teclado virtual, barras do navegador, gestos e limites de armazenamento). Antes do lançamento, faça uma passada manual num iPhone e num Android reais.
 
-## Painel administrativo
+## Cadastrar uma barbearia
 
-O painel fica em `/admin` e exige login de um usuário marcado como administrador. Não existe cadastro público: crie o administrador pelo script (usa a `SUPABASE_SERVICE_ROLE_KEY`):
+Não existe cadastro público. Cada barbearia nova entra por um arquivo JSON e um comando, sem deploy:
+
+1. Copie o modelo: `cp supabase/shops/demir-barbershop.example.json supabase/shops/<slug>.json` e preencha. Esse arquivo tem o e-mail do dono e **não vai para o git**: só os `*.example.json` são versionados.
+2. Rode o cadastro:
+
+   ```bash
+   node --env-file=.env.local scripts/create-shop.mjs supabase/shops/<slug>.json
+   ```
+
+   O comando valida o arquivo (slug, horários, preços, durações múltiplas de 5 min), cria o login do dono e grava barbearia, horários e serviços numa transação só: se algo falhar, nada fica no banco. Sem `dono.senha` no arquivo, ele gera e mostra uma senha provisória para você enviar ao dono. Se o e-mail já for dono de outra barbearia, o mesmo login passa a ter as duas.
+3. Em produção, rode o mesmo comando com as variáveis do projeto de produção (`--env-file=.env.production.local`).
+
+**O slug não muda depois de divulgado:** ele é o endereço do site e do painel e está nos links já enviados aos clientes. O comando recusa um slug que já existe.
+
+Para dar acesso a outra pessoa (ou trocar a senha do dono):
 
 ```bash
-node --env-file=.env.local scripts/create-admin.mjs voce@suabarbearia.com.br "uma-senha-forte"
+node --env-file=.env.local scripts/create-admin.mjs <slug> pessoa@email.com "uma-senha-forte"
 ```
 
-O script cria o usuário no Supabase Auth (já confirmado) e o inclui na tabela `admins`. Rodar de novo com o mesmo e-mail apenas atualiza a senha. Em produção, rode o mesmo comando com as variáveis do projeto de produção.
+### Limpar a demonstração
+
+Quem testa a demonstração deixa agendamentos de verdade nela (sem mensagens). Para apagá-los, rode no SQL Editor do Supabase:
+
+```sql
+delete from public.appointments
+where shop_id = (select id from public.shops where slug = 'demonstracao');
+```
+
+## Painel do dono
+
+O painel fica em `/painel/<slug>` e exige login de um dono vinculado àquela barbearia. Um dono logado que abre o painel de outra barbearia vê "Acesso negado", sem nenhum dado dela.
 
 Pelo painel o barbeiro:
 
@@ -196,11 +233,12 @@ npm run handbook:pdf       # gera o PDF de novo; avisa se alguma seção passar 
 ## Estrutura
 
 ```
-app/                 rotas (site público, /agendar, /agendamento/[token], /admin, /api)
+app/                 rotas (/barbearia/[slug] site público, /painel/[slug] painel, /api)
 components/          componentes de interface
 lib/                 formatação, validação, clientes Supabase
 supabase/migrations  esquema, RLS e funções (disponibilidade, agendamento)
-supabase/seed.sql    serviços, horário padrão e configurações de exemplo
+supabase/seed.sql    demonstração e barbearia de teste (serviços, horários, donos locais)
+supabase/shops/      modelos de cadastro de barbearia (create-shop.mjs)
 supabase/tests       testes pgTAP
 tests/, e2e/         testes unitários e ponta a ponta
 docs/design/         referência visual, identidade e comparativo

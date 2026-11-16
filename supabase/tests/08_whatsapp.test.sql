@@ -2,6 +2,11 @@
 begin;
 select plan(17);
 
+-- Barbearia padrão dos inserts deste arquivo (barbearia-teste); desfeito no rollback.
+alter table public.services alter column shop_id set default '5a000000-0000-4000-8000-000000000002';
+alter table public.schedule_blocks alter column shop_id set default '5a000000-0000-4000-8000-000000000002';
+alter table public.appointments alter column shop_id set default '5a000000-0000-4000-8000-000000000002';
+
 create temporary table t_day as
 select d::date as day
 from generate_series((now() at time zone 'America/Sao_Paulo')::date + 2,
@@ -13,7 +18,7 @@ create or replace function pg_temp.at_local(t time) returns timestamptz language
   select ((select day from t_day) + t) at time zone 'America/Sao_Paulo';
 $$;
 create or replace function pg_temp.svc(n text) returns uuid language sql as $$
-  select id from public.services where name = n;
+  select id from public.services where name = n and shop_id = '5a000000-0000-4000-8000-000000000002';
 $$;
 
 -- 1.1: o canal existe
@@ -21,15 +26,15 @@ select ok('whatsapp' = any (enum_range(null::public.reminder_channel)::text[]), 
 
 -- 1.2: consentimento gravado pelo create_booking
 create temporary table t_sem as
-select public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('10:00'), 'Sem Param', '+5511944440001') as r;
+select public.create_booking('barbearia-teste', array[pg_temp.svc('Barba')], pg_temp.at_local('10:00'), 'Sem Param', '+5511944440001') as r;
 create temporary table t_com as
-select public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('11:00'), 'Com Opt', '+5511944440002', null, true) as r;
+select public.create_booking('barbearia-teste', array[pg_temp.svc('Barba')], pg_temp.at_local('11:00'), 'Com Opt', '+5511944440002', null, true) as r;
 
 select is((select r->>'ok' from t_sem), 'true', 'create_booking sem o parâmetro continua funcionando');
 select is((select whatsapp_opt_in from public.appointments where id = (select (r->>'id')::uuid from t_sem)), false, 'sem o parâmetro grava false');
 select is((select whatsapp_opt_in from public.appointments where id = (select (r->>'id')::uuid from t_com)), true, 'com true grava true');
-select ok(not has_function_privilege('anon', 'public.create_booking(uuid[], timestamptz, text, text, text, boolean)', 'execute'), 'anon não executa create_booking');
-select ok(has_function_privilege('authenticated', 'public.admin_create_booking(uuid[], timestamptz, text, text, text, boolean)', 'execute'), 'authenticated executa admin_create_booking (checa is_admin dentro)');
+select ok(not has_function_privilege('anon', 'public.create_booking(text, uuid[], timestamptz, text, text, text, boolean)', 'execute'), 'anon não executa create_booking');
+select ok(has_function_privilege('authenticated', 'public.admin_create_booking(uuid, uuid[], timestamptz, text, text, text, boolean)', 'execute'), 'authenticated executa admin_create_booking (checa is_shop_admin dentro)');
 
 -- 1.3: lembretes por WhatsApp só com consentimento
 select is(
@@ -70,13 +75,13 @@ insert into public.appointments (customer_name, customer_phone, starts_at, ends_
 values ('Em 1h', '+5511944440005', now() + interval '1 hour', now() + interval '1 hour 30 minutes', 4500,
         public.hash_token('token-em1hora-12345678901234'));
 select is(
-  public.cancel_booking_by_token('token-em1hora-12345678901234')->>'error', 'too_late', 'a menos de 2 h continua too_late'
+  public.cancel_booking_by_token('barbearia-teste', 'token-em1hora-12345678901234')->>'error', 'too_late', 'a menos de 2 h continua too_late'
 );
 select is(
-  public.cancel_booking_by_token('token-emailok-12345678901234')->>'appointment_id',
+  public.cancel_booking_by_token('barbearia-teste', 'token-emailok-12345678901234')->>'appointment_id',
   (select id::text from public.appointments where customer_name = 'Email Ok'), 'sucesso devolve appointment_id'
 );
-select is(public.cancel_booking_by_token('token-inexistente-123456789')->>'error', 'not_found', 'token inválido continua not_found');
+select is(public.cancel_booking_by_token('barbearia-teste', 'token-inexistente-123456789')->>'error', 'not_found', 'token inválido continua not_found');
 
 -- 1.6: envio único do aviso de cancelamento
 select isnt(public.claim_notification((select id from public.appointments where customer_name = 'Email Ok'), 'whatsapp', 'cancelled_client'), null, '1ª reserva do aviso retorna id');

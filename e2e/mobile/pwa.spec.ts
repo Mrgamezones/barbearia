@@ -1,4 +1,5 @@
 import { evidence, expect, test, waitForServiceWorker } from "./helpers";
+import { site } from "../helpers/shop";
 
 // Android = Chromium, iOS = WebKit (ver devices.ts).
 
@@ -6,7 +7,7 @@ test.describe("PWA no Android", () => {
   test.skip(({ browserName }) => browserName !== "chromium", "somente perfis Android");
 
   test("manifest válido", async ({ request }) => {
-    const res = await request.get("/manifest.webmanifest");
+    const res = await request.get(site("manifest.webmanifest"));
     expect(res.ok()).toBe(true);
     const m = await res.json();
     expect(m.name).toBeTruthy();
@@ -19,7 +20,7 @@ test.describe("PWA no Android", () => {
   });
 
   test("service worker ativo controlando a página", async ({ page }, info) => {
-    await page.goto("/");
+    await page.goto(site());
     await waitForServiceWorker(page);
     const sw = await page.evaluate(async () => {
       const reg = await navigator.serviceWorker.ready;
@@ -34,7 +35,7 @@ test.describe("app web no iOS", () => {
   test.skip(({ browserName }) => browserName !== "webkit", "somente perfis iOS");
 
   test("meta tags de app web: ícone Apple, título e status bar", async ({ page, request }) => {
-    await page.goto("/");
+    await page.goto(site());
     const icon = page.locator('link[rel="apple-touch-icon"]');
     await expect(icon).toHaveCount(1);
     const href = (await icon.getAttribute("href"))!;
@@ -46,7 +47,7 @@ test.describe("app web no iOS", () => {
   });
 
   test("dica de instalação aparece, pode ser dispensada e é lembrada", async ({ page }, info) => {
-    await page.goto("/");
+    await page.goto(site());
     const hint = page.getByRole("region", { name: "Instalar o app" });
     await expect(hint).toBeVisible();
     await expect(hint).toContainText("Adicionar à Tela de Início");

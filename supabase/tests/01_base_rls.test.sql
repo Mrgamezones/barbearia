@@ -2,6 +2,11 @@
 begin;
 select plan(11);
 
+-- Barbearia padrão dos inserts deste arquivo (demonstracao); desfeito no rollback.
+alter table public.services alter column shop_id set default '5a000000-0000-4000-8000-000000000001';
+alter table public.schedule_blocks alter column shop_id set default '5a000000-0000-4000-8000-000000000001';
+alter table public.appointments alter column shop_id set default '5a000000-0000-4000-8000-000000000001';
+
 -- Serviço inativo para o teste.
 insert into public.services (name, price_cents, duration_min, active) values ('Inativo teste', 1000, 30, false);
 
@@ -9,8 +14,8 @@ insert into public.services (name, price_cents, duration_min, active) values ('I
 set local role anon;
 select is((select count(*)::int from public.services where name = 'Inativo teste'), 0, 'anon não vê serviço inativo');
 select ok((select count(*) from public.services) >= 10, 'anon vê os serviços ativos do seed');
-select is((select count(*)::int from public.business_settings), 1, 'anon lê configurações públicas');
-select throws_ok('select * from public.admins', '42501', null, 'anon não acessa admins');
+select is((select count(*)::int from public.shops where slug = 'demonstracao'), 1, 'anon lê os dados públicos da barbearia');
+select throws_ok('select * from public.shop_admins', '42501', null, 'anon não acessa shop_admins');
 select throws_ok('select * from public.schedule_blocks', '42501', null, 'anon não acessa bloqueios');
 select throws_ok($$insert into public.services (name, price_cents, duration_min) values ('x', 1, 5)$$, '42501', null, 'anon não cria serviços');
 reset role;

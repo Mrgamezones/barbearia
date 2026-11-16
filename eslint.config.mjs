@@ -25,7 +25,7 @@ const eslintConfig = [
   {
     files: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
     // manifest e viewport exigem a cor literal (não aceitam variáveis CSS).
-    ignores: ["app/manifest.ts", "app/layout.tsx"],
+    ignores: ["app/barbearia/[[]slug[]]/manifest.webmanifest/route.ts", "app/layout.tsx"],
     rules: { "no-restricted-syntax": ["error", ...colorRules] },
   },
   {

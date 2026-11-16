@@ -54,11 +54,11 @@ try {
   // Site público
   await page.goto("/");
   await shot("01-inicio");
-  await page.goto("/servicos");
+  await page.goto("/barbearia/demonstracao/servicos");
   await shot("02-servicos");
 
   // Agendamento, passo a passo
-  await page.goto("/agendar");
+  await page.goto("/barbearia/demonstracao/agendar");
   await page.waitForLoadState("networkidle").catch(() => {});
   for (const name of [/^Corte de cabelo/, /^Barba/]) {
     const box = page.getByRole("checkbox", { name });
@@ -113,20 +113,20 @@ try {
   });
 
   // Painel do barbeiro
-  await page.goto("/admin");
+  await page.goto("/painel/demonstracao");
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/admin/login"));
+  await page.waitForURL((u) => !u.pathname.startsWith("/painel/login"));
 
-  await page.goto(`/admin?data=${bookedDate}`);
+  await page.goto(`/painel/demonstracao?data=${bookedDate}`);
   await page.getByText(CUSTOMER.name).first().waitFor();
   await shot("09-painel-agenda");
-  await page.goto("/admin/servicos");
+  await page.goto("/painel/demonstracao/servicos");
   await shot("10-painel-servicos");
-  await page.goto("/admin/horarios");
+  await page.goto("/painel/demonstracao/horarios");
   await shot("11-painel-horarios");
-  await page.goto("/admin/config");
+  await page.goto("/painel/demonstracao/config");
   await shot("12-painel-configuracoes");
 
   // Cancela o agendamento de exemplo, para o script poder rodar de novo (limite de 2 por número).

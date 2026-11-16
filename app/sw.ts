@@ -12,6 +12,10 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const sameOrigin = (url: URL) => url.origin === self.location.origin;
+/** Link de gerenciamento de agendamento: /barbearia/<slug>/agendamento/<token>. */
+const MANAGE_LINK = /^\/barbearia\/[a-z0-9-]+\/agendamento\//;
+/** Início e catálogo de uma barbearia: /barbearia/<slug> e /barbearia/<slug>/servicos. */
+const SHOP_CATALOG = /^\/barbearia\/[a-z0-9-]+(\/servicos)?\/?$/;
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
@@ -21,7 +25,8 @@ const serwist = new Serwist({
   runtimeCaching: [
     // Painel, APIs e o link de gerenciamento sempre na rede (dados pessoais e sensíveis ao tempo).
     {
-      matcher: ({ url }) => sameOrigin(url) && (url.pathname.startsWith("/admin") || url.pathname.startsWith("/api/") || url.pathname.startsWith("/agendamento/")),
+      matcher: ({ url }) =>
+        sameOrigin(url) && (url.pathname.startsWith("/painel") || url.pathname.startsWith("/api/") || MANAGE_LINK.test(url.pathname)),
       handler: new NetworkOnly(),
     },
     // Server Actions (POST com header Next-Action) nunca passam por cache.
@@ -29,7 +34,7 @@ const serwist = new Serwist({
     // Home e catálogo: mostra o que estiver em cache e atualiza em segundo plano.
     {
       matcher: ({ url, request }) =>
-        sameOrigin(url) && request.method === "GET" && (url.pathname === "/" || url.pathname === "/servicos"),
+        sameOrigin(url) && request.method === "GET" && SHOP_CATALOG.test(url.pathname),
       handler: new StaleWhileRevalidate({ cacheName: "catalogo" }),
     },
     ...defaultCache,

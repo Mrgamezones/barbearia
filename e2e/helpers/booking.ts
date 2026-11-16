@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { adminDb } from "./db";
+import { SHOP, shopId } from "./shop";
 import { serviceId } from "./slots";
 
 /** IP aleatório (faixa de documentação) para não esbarrar no rate limit entre testes. */
@@ -16,14 +17,17 @@ export async function insertAppointment(opts: {
   serviceName?: string;
   status?: string;
   whatsappOptIn?: boolean;
+  shop?: string;
 }) {
   const token = randomBytes(32).toString("base64url");
   const hash = createHash("sha256").update(token).digest("hex");
   const minutes = opts.minutes ?? 30;
-  const svcId = await serviceId(opts.serviceName ?? "Corte de cabelo");
+  const shop = opts.shop ?? SHOP;
+  const svcId = await serviceId(opts.serviceName ?? "Corte de cabelo", shop);
   const { data, error } = await adminDb()
     .from("appointments")
     .insert({
+      shop_id: await shopId(shop),
       customer_name: "Cliente Teste",
       customer_phone: opts.phone,
       starts_at: opts.startsAt.toISOString(),

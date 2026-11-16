@@ -5,12 +5,13 @@ import { contrast } from "../lib/contrast";
 import { adminDb } from "./helpers/db";
 import { chooseDateAndTime, chooseServices, fillCustomer, prettyPhone, randomIp } from "./helpers/booking";
 import { cleanupByPhone, testPhone } from "./helpers/slots";
+import { site } from "./helpers/shop";
 
 const isProject = (name: string) => test.info().project.name === name;
 
 test.describe("cabeçalho", () => {
   test("ordem das seções e âncoras", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     const top = async (id: string) => {
       await expect(page.locator(`#${id}`)).toHaveCount(1);
       return page.locator(`#${id}`).evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
@@ -25,7 +26,7 @@ test.describe("cabeçalho", () => {
 
   test("desktop: navegação por âncora rola até a galeria sem o cabeçalho cobrir o título", async ({ page }) => {
     test.skip(!isProject("desktop"), "menu horizontal só no desktop");
-    await page.goto("/");
+    await page.goto(site());
     await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Galeria" }).click();
     const title = page.getByRole("heading", { name: "Nosso trabalho" });
     await expect(title).toBeInViewport();
@@ -42,7 +43,7 @@ test.describe("cabeçalho", () => {
 
   test("celular: menu em tela cheia com foco preso, Esc fecha e devolve o foco", async ({ page }) => {
     test.skip(!isProject("mobile"), "menu em tela cheia só abaixo de 1024 px");
-    await page.goto("/");
+    await page.goto(site());
     await expect(page.getByRole("navigation", { name: "Principal" })).toBeHidden();
     await expect(page.getByRole("banner").getByRole("link", { name: /Agendar/ })).toBeVisible();
     const openButton = page.getByRole("button", { name: "Abrir menu" });
@@ -76,7 +77,7 @@ test.describe("cabeçalho", () => {
 
 test.describe("hero", () => {
   test("'Agendar agora' rola até o painel e foca a primeira etapa", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     await page.getByRole("link", { name: /Agendar agora/ }).click();
     const step1 = page.getByRole("heading", { name: "Escolha o serviço" });
     await expect(step1).toBeFocused();
@@ -85,7 +86,7 @@ test.describe("hero", () => {
   });
 
   test("título e subtítulo com contraste AA sobre a foto", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     const hero = page.getByTestId("hero");
     // Só as imagens do hero: as da galeria têm lazy load e, fora da tela, nunca terminam de carregar.
     await expect(hero.locator("img")).not.toHaveCount(0);
@@ -124,7 +125,7 @@ test.describe("diferenciais", () => {
     test.skip(!isProject("desktop"), "controla a largura manualmente");
     const items = () => page.getByTestId("features").getByRole("listitem");
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/");
+    await page.goto(site());
     await expect(items()).toHaveCount(4);
     await expect(items()).toHaveText([/Agendamento rápido/, /Profissional experiente/, /Ambiente premium/, /Lembretes automáticos/]);
     const tops = await items().evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
@@ -143,7 +144,7 @@ test.describe("diferenciais", () => {
 
 test.describe("galeria", () => {
   test("abre, navega e fecha pelo teclado; fotos com lazy loading e texto alternativo", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     const gallery = page.getByTestId("gallery");
     const thumbs = gallery.getByRole("button");
     await expect(thumbs).toHaveCount(8);
@@ -177,7 +178,7 @@ test.describe("galeria", () => {
 
   test("gesto de deslizar troca a foto", async ({ page }) => {
     test.skip(!isProject("mobile"), "gesto de toque no celular");
-    await page.goto("/");
+    await page.goto(site());
     await page.getByTestId("gallery").getByRole("button").nth(2).click();
     const dialog = page.getByRole("dialog", { name: "Foto ampliada" });
     await expect(dialog).toContainText("3 / 8");
@@ -193,8 +194,8 @@ test.describe("galeria", () => {
 
 test.describe("painel de agendamento", () => {
   test("horário de atendimento e cartão do barbeiro vindos das configurações", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByTestId("hours-card")).toHaveText("Atendimento — TER–SÁB: 09h às 19h");
+    await page.goto(site());
+    await expect(page.getByTestId("hours-card")).toHaveText("Atendimento — TER–SÁB: 9h às 19h");
     // No celular o cartão fica na etapa 3 ("Seus dados"); chega até ela.
     if (isProject("mobile")) {
       await page.getByRole("checkbox", { name: /^Barba/ }).click();
@@ -212,7 +213,7 @@ test.describe("painel de agendamento", () => {
     const columns = page.getByTestId("booking-columns").locator(":scope > section");
     const tops = () => columns.evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     await expect(columns).toHaveCount(4);
     expect(new Set(await tops()).size).toBe(1);
     await page.setViewportSize({ width: 1100, height: 900 });
@@ -228,7 +229,7 @@ test.describe("painel de agendamento", () => {
   test("celular 390 px: só a etapa atual aparece e o resumo fixo acompanha a seleção", async ({ page }) => {
     test.skip(!isProject("mobile"), "layout celular");
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     const visibleSteps = () => page.locator("[data-step]:visible").evaluateAll((els) => els.map((e) => e.getAttribute("data-step")));
     expect(await visibleSteps()).toEqual(["1"]);
     const bar = page.getByTestId("summary-bar");
@@ -267,7 +268,7 @@ test.describe("agendar pela home e por /agendar dá o mesmo resultado", () => {
 
   test("mesmo serviço pela home e por /agendar gera agendamentos equivalentes", async ({ browser }) => {
     const results = [];
-    for (const path of ["/", "/agendar"]) {
+    for (const path of ["/", site("agendar")]) {
       const ctx = await browser.newContext({ extraHTTPHeaders: { "x-forwarded-for": randomIp() } });
       const page = await ctx.newPage();
       const phone = testPhone();

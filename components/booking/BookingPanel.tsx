@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { cn } from "@/lib/cn";
-import type { BusinessHour, BusinessSettings, Service } from "@/lib/types";
+import type { BusinessHour, Service, Shop } from "@/lib/types";
 import { BookingFlow } from "./BookingFlow";
 import { HoursCard } from "./HoursCard";
 
 type Props = {
   services: Service[];
-  settings: BusinessSettings;
+  shop: Shop;
   hours: BusinessHour[];
   /** h1 na página /agendar; h2 na home (onde o h1 é o hero). */
   headingLevel?: 1 | 2;
@@ -14,7 +14,7 @@ type Props = {
 };
 
 /** Painel "Agende seu horário": título com traço dourado, horário de atendimento e o fluxo em etapas. */
-export function BookingPanel({ services, settings, hours, headingLevel = 2, className }: Props) {
+export function BookingPanel({ services, shop, hours, headingLevel = 2, className }: Props) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <section id="agendar" aria-labelledby="agendar-titulo" className={cn("container-page scroll-mt-20", className)}>
@@ -30,9 +30,10 @@ export function BookingPanel({ services, settings, hours, headingLevel = 2, clas
         </div>
         <Suspense fallback={<p className="text-muted">Carregando…</p>}>
           <BookingFlow
+            shopSlug={shop.slug}
             services={services}
             headingLevel={headingLevel === 1 ? 2 : 3}
-            barber={settings.barber_name ? { name: settings.barber_name, bio: settings.barber_bio, photoUrl: settings.barber_photo_url || null } : null}
+            barber={shop.barber_name ? { name: shop.barber_name, bio: shop.barber_bio, photoUrl: shop.barber_photo_url || null } : null}
           />
         </Suspense>
       </div>

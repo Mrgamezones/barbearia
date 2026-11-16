@@ -4,6 +4,7 @@ import { ensureTestUsers, login } from "./helpers/admin";
 import { chooseDateAndTime, chooseServices, fillCustomer, prettyPhone, randomIp } from "./helpers/booking";
 import { adminDb } from "./helpers/db";
 import { cleanupByPhone, testPhone } from "./helpers/slots";
+import { SHOP, panel, site } from "./helpers/shop";
 
 const TZ = "America/Sao_Paulo";
 
@@ -16,7 +17,7 @@ test.describe("jornada completa", () => {
     // 1) Cliente agenda pelo site.
     const client = await browser.newContext({ extraHTTPHeaders: { "x-forwarded-for": randomIp() } });
     const page = await client.newPage();
-    await page.goto("/agendar");
+    await page.goto(site("agendar"));
     await chooseServices(page, ["Corte de cabelo"]);
     const time = await chooseDateAndTime(page);
     await fillCustomer(page, prettyPhone(phone), "Jornada Completa");
@@ -30,7 +31,7 @@ test.describe("jornada completa", () => {
     // 2) Barbeiro vê o agendamento na agenda do dia.
     const barber = await browser.newContext();
     const admin = await barber.newPage();
-    await login(admin, undefined, `/admin?data=${day}`);
+    await login(admin, undefined, `${panel()}?data=${day}`);
     const item = admin.getByTestId("agenda-item").filter({ hasText: prettyPhone(phone) });
     await expect(item).toContainText("Jornada Completa");
     await expect(item).toContainText(time);
@@ -45,7 +46,7 @@ test.describe("jornada completa", () => {
     // 4) Agenda mostra cancelado e o horário volta a ser oferecido no site.
     await admin.reload();
     await expect(item).toContainText("Cancelado");
-    const { data: slots } = await adminDb().rpc("get_available_slots", { p_date: day, p_total_minutes: 30 });
+    const { data: slots } = await adminDb().rpc("get_available_slots", { p_shop_slug: SHOP, p_date: day, p_total_minutes: 30 });
     expect((slots as { slot: string }[]).some((s) => new Date(s.slot).getTime() === new Date(appt!.starts_at).getTime())).toBe(true);
 
     await client.close();

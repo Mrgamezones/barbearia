@@ -2,8 +2,13 @@
 begin;
 select plan(13);
 
+-- Barbearia padrão dos inserts deste arquivo (barbearia-teste); desfeito no rollback.
+alter table public.services alter column shop_id set default '5a000000-0000-4000-8000-000000000002';
+alter table public.schedule_blocks alter column shop_id set default '5a000000-0000-4000-8000-000000000002';
+alter table public.appointments alter column shop_id set default '5a000000-0000-4000-8000-000000000002';
+
 create or replace function pg_temp.svc(n text) returns uuid language sql as $$
-  select id from public.services where name = n;
+  select id from public.services where name = n and shop_id = '5a000000-0000-4000-8000-000000000002';
 $$;
 
 -- Agendamento a ~5 h com e-mail: só o lembrete de 2 h (o de 24 h já passou).

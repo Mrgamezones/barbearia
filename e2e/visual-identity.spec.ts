@@ -1,11 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { site } from "./helpers/shop";
 
 test.describe("identidade visual (/estilo)", () => {
   test.skip(() => test.info().project.name !== "desktop", "roda uma vez");
 
   test("escala tipográfica: serifada nos títulos, Inter no texto, eyebrow em caixa alta dourada", async ({ page }) => {
-    await page.goto("/estilo");
+    await page.goto(site("estilo"));
     const style = (id: string) =>
       page.getByTestId(id).evaluate((el) => {
         const s = getComputedStyle(el);
@@ -31,7 +32,7 @@ test.describe("identidade visual (/estilo)", () => {
   });
 
   test("nenhuma serifada abaixo de 24 px no site", async ({ page }) => {
-    for (const path of ["/", "/agendar", "/servicos", "/estilo"]) {
+    for (const path of ["/", site("agendar"), site("servicos"), site("estilo")]) {
       await page.goto(path);
       const small = await page.evaluate(() =>
         [...document.querySelectorAll("body *")]
@@ -49,7 +50,7 @@ test.describe("identidade visual (/estilo)", () => {
       await new Promise((r) => setTimeout(r, 8_000));
       await route.continue().catch(() => {});
     });
-    await page.goto("/estilo", { waitUntil: "domcontentloaded" });
+    await page.goto(site("estilo"), { waitUntil: "domcontentloaded" });
     const display = page.getByTestId("type-display");
     await expect(display).toBeVisible({ timeout: 2_000 });
     // As fontes ainda não chegaram, mas o texto já tem largura (está sendo desenhado com o fallback).
@@ -74,7 +75,7 @@ test.describe("identidade visual (/estilo)", () => {
   });
 
   test("componentes base sem violações de acessibilidade e com foco distinto da seleção", async ({ page }) => {
-    await page.goto("/estilo");
+    await page.goto(site("estilo"));
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(results.violations.map((v) => v.id)).toEqual([]);
 
@@ -122,7 +123,7 @@ test.describe("identidade nas páginas de estado", () => {
   });
 
   test("link de gerenciamento inválido com a identidade", async ({ page }) => {
-    await page.goto("/agendamento/token-que-nao-existe-1234567890");
+    await page.goto(site() + "/agendamento/token-que-nao-existe-1234567890");
     await expect(page.getByRole("heading", { name: "Agendamento não encontrado" })).toBeVisible();
     await expectIdentity(page);
   });

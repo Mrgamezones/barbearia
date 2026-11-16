@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { login, type LoginState } from "@/app/admin/login/actions";
+import { login, type LoginState } from "@/app/painel/login/actions";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 

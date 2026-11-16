@@ -1,14 +1,16 @@
 "use client";
 import { useState, useTransition } from "react";
-import { saveHours } from "@/app/admin/(painel)/horarios/actions";
+import { saveHours } from "@/app/painel/[slug]/horarios/actions";
 import { Button } from "@/components/ui/Button";
 import { WEEKDAYS } from "@/lib/hours";
+import { usePanelSlug } from "./usePanelSlug";
 
 type Row = { weekday: number; is_open: boolean; open_time: string; close_time: string; break_start: string; break_end: string };
 
 const timeInput = "min-h-11 w-full rounded-sm border border-border bg-surface px-2 text-sm text-text disabled:opacity-40";
 
 export function HoursForm({ initial }: { initial: Row[] }) {
+  const slug = usePanelSlug();
   const [rows, setRows] = useState(initial);
   const [errors, setErrors] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState(false);
@@ -25,7 +27,7 @@ export function HoursForm({ initial }: { initial: Row[] }) {
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await saveHours(rows);
+          const r = await saveHours(slug, rows);
           if (r.ok) {
             setErrors({});
             setSaved(true);

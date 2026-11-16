@@ -1,15 +1,18 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { adminCreateBooking, adminFetchSlots } from "@/app/admin/(painel)/novo/actions";
+import { adminCreateBooking, adminFetchSlots } from "@/app/painel/[slug]/novo/actions";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { TextField } from "@/components/ui/TextField";
 import { cn } from "@/lib/cn";
 import { formatDuration, formatPrice, formatTime } from "@/lib/format";
 import type { Service } from "@/lib/types";
+import { usePanelSlug } from "./usePanelSlug";
+import { panelPath } from "@/lib/paths";
 
 export function ManualBookingForm({ services, today }: { services: Service[]; today: string }) {
+  const slug = usePanelSlug();
   const router = useRouter();
   const [ids, setIds] = useState<string[]>([]);
   const [date, setDate] = useState(today);
@@ -29,20 +32,20 @@ export function ManualBookingForm({ services, today }: { services: Service[]; to
     setSlot(null);
     if (!minutes || !date) return setSlots(null);
     let cancelled = false;
-    adminFetchSlots(date, minutes).then((s) => !cancelled && setSlots(s));
+    adminFetchSlots(slug, date, minutes).then((s) => !cancelled && setSlots(s));
     return () => {
       cancelled = true;
     };
-  }, [date, minutes]);
+  }, [slug, date, minutes]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
     if (!slot) return setMessage("Escolha serviço(s), data e horário.");
     start(async () => {
-      const r = await adminCreateBooking({ serviceIds: ids, startsAt: slot, ...customer, email: customer.email || undefined, whatsappOptIn });
+      const r = await adminCreateBooking(slug, { serviceIds: ids, startsAt: slot, ...customer, email: customer.email || undefined, whatsappOptIn });
       if (r.ok) {
-        router.push(`/admin?data=${date}`);
+        router.push(`${panelPath(slug)}?data=${date}`);
       } else {
         setErrors(r.fields ?? {});
         setMessage(r.message);

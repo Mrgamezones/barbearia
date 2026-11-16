@@ -2,6 +2,11 @@
 begin;
 select plan(20);
 
+-- Barbearia padrão dos inserts deste arquivo (demonstracao); desfeito no rollback.
+alter table public.services alter column shop_id set default '5a000000-0000-4000-8000-000000000001';
+alter table public.schedule_blocks alter column shop_id set default '5a000000-0000-4000-8000-000000000001';
+alter table public.appointments alter column shop_id set default '5a000000-0000-4000-8000-000000000001';
+
 create temporary table t_day as
 select d::date as day
 from generate_series((now() at time zone 'America/Sao_Paulo')::date + 2,
@@ -13,12 +18,12 @@ create or replace function pg_temp.at_local(t time, plus_days int default 0) ret
   select ((select day from t_day) + plus_days + t) at time zone 'America/Sao_Paulo';
 $$;
 create or replace function pg_temp.svc(n text) returns uuid language sql as $$
-  select id from public.services where name = n;
+  select id from public.services where name = n and shop_id = '5a000000-0000-4000-8000-000000000001';
 $$;
 
 -- Criação com sucesso
 create temporary table t_ok as
-select public.create_booking(array[pg_temp.svc('Corte de cabelo'), pg_temp.svc('Bigode')],
+select public.create_booking('demonstracao', array[pg_temp.svc('Corte de cabelo'), pg_temp.svc('Bigode')],
                              pg_temp.at_local('10:00'), 'Ana Cliente', '+5511988887777', 'ana@ex.com') as r;
 
 select is((select r->>'ok' from t_ok), 'true', 'agendamento válido é criado');
@@ -51,7 +56,7 @@ select isnt(
 
 -- Conflito
 select is(
-  public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('10:15'), 'Bruno', '+5511977776666')->>'error',
+  public.create_booking('demonstracao', array[pg_temp.svc('Barba')], pg_temp.at_local('10:15'), 'Bruno', '+5511977776666')->>'error',
   'slot_taken',
   'horário sobreposto retorna slot_taken'
 );
@@ -64,42 +69,42 @@ select throws_ok(
 
 -- Fora do funcionamento / serviço inválido / dados inválidos
 select is(
-  public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('12:00'), 'Bruno', '+5511977776666')->>'error',
+  public.create_booking('demonstracao', array[pg_temp.svc('Barba')], pg_temp.at_local('12:00'), 'Bruno', '+5511977776666')->>'error',
   'slot_unavailable', 'horário do almoço é recusado'
 );
 select is(
-  public.create_booking(array[]::uuid[], pg_temp.at_local('15:00'), 'Bruno', '+5511977776666')->>'error',
+  public.create_booking('demonstracao', array[]::uuid[], pg_temp.at_local('15:00'), 'Bruno', '+5511977776666')->>'error',
   'invalid_services', 'sem serviços é recusado'
 );
 update public.services set active = false where name = 'Pezinho/acabamento';
 select is(
-  public.create_booking(array[pg_temp.svc('Pezinho/acabamento')], pg_temp.at_local('15:00'), 'Bruno', '+5511977776666')->>'error',
+  public.create_booking('demonstracao', array[pg_temp.svc('Pezinho/acabamento')], pg_temp.at_local('15:00'), 'Bruno', '+5511977776666')->>'error',
   'invalid_services', 'serviço inativo é recusado'
 );
 select is(
-  public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('15:00'), 'Bruno', '1234')->>'error',
+  public.create_booking('demonstracao', array[pg_temp.svc('Barba')], pg_temp.at_local('15:00'), 'Bruno', '1234')->>'error',
   'invalid_data', 'telefone fora do formato é recusado pelo banco'
 );
 
 -- Limite de 2 futuros por telefone
-select is(public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('15:00'), 'Carla', '+5511955554444')->>'ok', 'true', '1º agendamento');
-select is(public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('16:00'), 'Carla', '+5511955554444')->>'ok', 'true', '2º agendamento');
+select is(public.create_booking('demonstracao', array[pg_temp.svc('Barba')], pg_temp.at_local('15:00'), 'Carla', '+5511955554444')->>'ok', 'true', '1º agendamento');
+select is(public.create_booking('demonstracao', array[pg_temp.svc('Barba')], pg_temp.at_local('16:00'), 'Carla', '+5511955554444')->>'ok', 'true', '2º agendamento');
 select is(
-  public.create_booking(array[pg_temp.svc('Barba')], pg_temp.at_local('17:00'), 'Carla', '+5511955554444')->>'error',
+  public.create_booking('demonstracao', array[pg_temp.svc('Barba')], pg_temp.at_local('17:00'), 'Carla', '+5511955554444')->>'error',
   'limit_reached', '3º agendamento futuro do mesmo número é recusado'
 );
 
 -- Consulta por token
 select is(
-  (public.get_booking_by_token((select r->>'token' from t_ok)))->>'customer_name',
+  (public.get_booking_by_token('demonstracao', (select r->>'token' from t_ok)))->>'customer_name',
   'Ana Cliente', 'consulta pelo token retorna os detalhes'
 );
-select is(public.get_booking_by_token('token-inexistente'), null, 'token inexistente não retorna nada');
+select is(public.get_booking_by_token('demonstracao', 'token-inexistente'), null, 'token inexistente não retorna nada');
 
 -- Cancelamento: dentro do prazo libera o horário
-select is(public.cancel_booking_by_token((select r->>'token' from t_ok))->>'ok', 'true', 'cancela com mais de 2 h de antecedência');
+select is(public.cancel_booking_by_token('demonstracao', (select r->>'token' from t_ok))->>'ok', 'true', 'cancela com mais de 2 h de antecedência');
 select ok(
-  exists (select 1 from public.get_available_slots((select day from t_day), 30) where slot = pg_temp.at_local('10:00')),
+  exists (select 1 from public.get_available_slots('demonstracao', (select day from t_day), 30) where slot = pg_temp.at_local('10:00')),
   'horário cancelado volta a ficar livre'
 );
 

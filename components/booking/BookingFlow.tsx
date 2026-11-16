@@ -5,8 +5,9 @@ import { formatInTimeZone } from "date-fns-tz";
 import { AlertCircle, ArrowLeft, CalendarDays, FileText, Lock, Scissors, UserRound, WifiOff, type LucideIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition, type ReactNode } from "react";
-import { createBooking } from "@/app/(public)/agendar/actions";
+import { createBooking } from "@/app/barbearia/[slug]/agendar/actions";
 import { fetchAvailableDates, fetchSlots } from "@/lib/availability";
+import { bookingPath, shopPath } from "@/lib/paths";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
@@ -94,7 +95,17 @@ function Column({ n, current, icon: Icon, title, headingLevel, onBack, className
   );
 }
 
-export function BookingFlow({ services, barber = null, headingLevel = 2 }: { services: Service[]; barber?: Barber | null; headingLevel?: 2 | 3 }) {
+export function BookingFlow({
+  shopSlug,
+  services,
+  barber = null,
+  headingLevel = 2,
+}: {
+  shopSlug: string;
+  services: Service[];
+  barber?: Barber | null;
+  headingLevel?: 2 | 3;
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const online = useOnline();
@@ -206,23 +217,23 @@ export function BookingFlow({ services, barber = null, headingLevel = 2 }: { ser
     if (from > to) return setAvailableDates(new Set());
     const ctrl = new AbortController();
     setDatesLoading(true);
-    fetchAvailableDates(from, to, totalMinutes, ctrl.signal)
+    fetchAvailableDates(shopSlug, from, to, totalMinutes, ctrl.signal)
       .then((d) => !ctrl.signal.aborted && setAvailableDates(new Set(d)))
       .catch(() => !ctrl.signal.aborted && setAlert(BOOKING_ERROR_MESSAGES.network))
       .finally(() => !ctrl.signal.aborted && setDatesLoading(false));
     return () => ctrl.abort();
-  }, [month, totalMinutes, today, maxDate, online, reload]);
+  }, [shopSlug, month, totalMinutes, today, maxDate, online, reload]);
 
   useEffect(() => {
     if (!date || !totalMinutes || !online) return setSlots(null);
     const ctrl = new AbortController();
     setSlotsLoading(true);
-    fetchSlots(date, totalMinutes, ctrl.signal)
+    fetchSlots(shopSlug, date, totalMinutes, ctrl.signal)
       .then((s) => !ctrl.signal.aborted && setSlots(s))
       .catch(() => !ctrl.signal.aborted && setAlert(BOOKING_ERROR_MESSAGES.network))
       .finally(() => !ctrl.signal.aborted && setSlotsLoading(false));
     return () => ctrl.abort();
-  }, [date, totalMinutes, online, reload]);
+  }, [shopSlug, date, totalMinutes, online, reload]);
 
   // --- Confirmação ---------------------------------------------------------
   function confirm() {
@@ -242,7 +253,7 @@ export function BookingFlow({ services, barber = null, headingLevel = 2 }: { ser
     startSubmit(async () => {
       let result;
       try {
-        result = await createBooking({
+        result = await createBooking(shopSlug, {
           serviceIds,
           startsAt: slot,
           name: customer.name,
@@ -255,7 +266,7 @@ export function BookingFlow({ services, barber = null, headingLevel = 2 }: { ser
         return;
       }
       if (result.ok) {
-        router.push(`/agendamento/${encodeURIComponent(result.token)}?novo=1`);
+        router.push(`${bookingPath(shopSlug, result.token)}?novo=1`);
         return;
       }
       const code: BookingErrorCode = result.error;
@@ -400,7 +411,7 @@ export function BookingFlow({ services, barber = null, headingLevel = 2 }: { ser
             />
             <p className="text-xs text-muted">
               Usamos seus dados apenas para este agendamento. Veja a{" "}
-              <a href="/privacidade" className="text-gold underline underline-offset-2">
+              <a href={shopPath(shopSlug, "privacidade")} className="text-gold underline underline-offset-2">
                 política de privacidade
               </a>
               .

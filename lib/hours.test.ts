@@ -16,12 +16,12 @@ describe("horário de funcionamento", () => {
   const padrao = [day(0), day(1), ...[2, 3, 4, 5, 6].map((d) => day(d, ["09:00:00", "19:00:00"]))];
 
   it("agrupa dias contíguos", () => {
-    expect(hoursSummary(padrao)).toBe("TER–SÁB: 09h às 19h");
+    expect(hoursSummary(padrao)).toBe("TER–SÁB: 9h às 19h");
   });
 
   it("lista dias não contíguos", () => {
     const h = [day(0), day(1, ["09:00:00", "18:00:00"]), day(2), day(3, ["09:00:00", "18:00:00"]), day(4), day(5), day(6, ["08:00:00", "12:30:00"])];
-    expect(hoursSummary(h)).toBe("SEG, QUA: 09h às 18h · SÁB: 08h às 12h30");
+    expect(hoursSummary(h)).toBe("SEG, QUA: 9h às 18h · SÁB: 8h às 12h30");
   });
 
   it("mostra domingo fechado", () => {

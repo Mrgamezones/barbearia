@@ -1,11 +1,11 @@
-// Cria (ou promove) um usuário administrador do painel.
-// Uso: node --env-file=.env.local scripts/create-admin.mjs <email> <senha>
+// Cria (ou atualiza a senha de) um usuário e o vincula como dono de uma barbearia.
+// Uso: node --env-file=.env.local scripts/create-admin.mjs <slug-da-barbearia> <email> <senha>
 // Requer NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.
 import { createClient } from "@supabase/supabase-js";
 
-const [email, password] = process.argv.slice(2);
-if (!email || !password || password.length < 8) {
-  console.error("Uso: node --env-file=.env.local scripts/create-admin.mjs <email> <senha com 8+ caracteres>");
+const [slug, email, password] = process.argv.slice(2);
+if (!slug || !email || !password || password.length < 8) {
+  console.error("Uso: node --env-file=.env.local scripts/create-admin.mjs <slug-da-barbearia> <email> <senha com 8+ caracteres>");
   process.exit(1);
 }
 
@@ -18,6 +18,15 @@ if (!url || !key) {
 
 const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
+const { data: shop, error: shopError } = await db.from("shops").select("id,name").eq("slug", slug).maybeSingle();
+if (shopError) throw shopError;
+if (!shop) {
+  console.error(`Barbearia "${slug}" não encontrada. Cadastre-a antes com scripts/create-shop.mjs.`);
+  process.exitCode = 1;
+} else {
+  await grantAccess(shop);
+}
+
 async function findUser(email) {
   for (let page = 1; page < 50; page++) {
     const { data, error } = await db.auth.admin.listUsers({ page, perPage: 200 });
@@ -27,18 +36,21 @@ async function findUser(email) {
   }
 }
 
-let user = await findUser(email);
-if (user) {
-  const { error } = await db.auth.admin.updateUserById(user.id, { password, email_confirm: true });
+async function grantAccess(shop) {
+  let user = await findUser(email);
+  if (user) {
+    const { error } = await db.auth.admin.updateUserById(user.id, { password, email_confirm: true });
+    if (error) throw error;
+    console.log(`Usuário existente atualizado: ${email}`);
+  } else {
+    const { data, error } = await db.auth.admin.createUser({ email, password, email_confirm: true });
+    if (error) throw error;
+    user = data.user;
+    console.log(`Usuário criado: ${email}`);
+  }
+
+  const { error } = await db.from("shop_admins").upsert({ shop_id: shop.id, user_id: user.id });
   if (error) throw error;
-  console.log(`Usuário existente atualizado: ${email}`);
-} else {
-  const { data, error } = await db.auth.admin.createUser({ email, password, email_confirm: true });
-  if (error) throw error;
-  user = data.user;
-  console.log(`Usuário criado: ${email}`);
+  console.log(`Acesso ao painel de "${shop.name}" concedido: /painel/${slug}`);
 }
 
-const { error } = await db.from("admins").upsert({ user_id: user.id });
-if (error) throw error;
-console.log("Papel de administrador concedido.");

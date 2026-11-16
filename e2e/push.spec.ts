@@ -2,6 +2,7 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { insertAppointment } from "./helpers/booking";
 import { adminDb } from "./helpers/db";
 import { cleanupByPhone, testPhone } from "./helpers/slots";
+import { site } from "./helpers/shop";
 
 test.describe("lembretes por push na página do agendamento", () => {
   test.skip(() => test.info().project.name !== "mobile", "roda no perfil Android (Chromium)");
@@ -40,7 +41,7 @@ test.describe("lembretes por push na página do agendamento", () => {
     await context.grantPermissions(["notifications"]);
     await mockPush(page, endpoint);
 
-    await page.goto(`/agendamento/${token}`);
+    await page.goto(`${site()}/agendamento/${token}`);
     const button = page.getByRole("button", { name: "Ativar lembrete" });
     await expect(button).toBeVisible();
     expect(await page.evaluate(() => (window as unknown as { __permissionRequests: number }).__permissionRequests)).toBe(0);
@@ -56,7 +57,7 @@ test.describe("lembretes por push na página do agendamento", () => {
 
     // O link de gerenciamento fica guardado no navegador para a notificação abrir.
     const saved = await page.evaluate(async (aid) => (await (await caches.open("lembretes-links")).match(`/__lembrete/${aid}`))?.text(), id);
-    expect(saved).toBe(`/agendamento/${encodeURIComponent(token)}`);
+    expect(saved).toBe(`${site()}/agendamento/${encodeURIComponent(token)}`);
   });
 
   test("navegador sem suporte explica a alternativa, sem erro", async ({ page }) => {
@@ -66,7 +67,7 @@ test.describe("lembretes por push na página do agendamento", () => {
     });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto(`/agendamento/${token}`);
+    await page.goto(`${site()}/agendamento/${token}`);
     await expect(page.getByTestId("reminder-unsupported")).toContainText("receberá os lembretes por e-mail");
     await expect(page.getByRole("button", { name: "Ativar lembrete" })).toHaveCount(0);
     expect(errors).toEqual([]);
@@ -96,7 +97,7 @@ test.describe("lembretes por push na página do agendamento", () => {
 
   test("service worker exibe a notificação recebida por push", async ({ page, context }) => {
     await context.grantPermissions(["notifications"]);
-    await page.goto("/");
+    await page.goto(site());
     await page.waitForFunction(async () => !!(await navigator.serviceWorker.ready).active);
     await deliverPush(page, context, { title: "Daqui a 2 horas: 14:00 na Barbearia Modelo", body: "Corte de cabelo.", appointmentId: "abc" });
 

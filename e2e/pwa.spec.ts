@@ -1,5 +1,6 @@
 import { devices, expect, test, type Page } from "@playwright/test";
 import { serviceId } from "./helpers/slots";
+import { site } from "./helpers/shop";
 
 async function waitForServiceWorker(page: Page) {
   await page.waitForFunction(async () => {
@@ -12,7 +13,7 @@ test.describe("PWA", () => {
   test.skip(() => test.info().project.name !== "mobile", "roda no perfil Android (Chromium)");
 
   test("manifest válido com ícones 192/512/maskable, standalone e cor de tema", async ({ request }) => {
-    const res = await request.get("/manifest.webmanifest");
+    const res = await request.get(site("manifest.webmanifest"));
     expect(res.ok()).toBe(true);
     const m = await res.json();
     expect(m.display).toBe("standalone");
@@ -25,7 +26,7 @@ test.describe("PWA", () => {
   });
 
   test("Chrome considera o site instalável (sem erros de instalabilidade)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     await waitForServiceWorker(page);
     const cdp = await page.context().newCDPSession(page);
     const { installabilityErrors } = await cdp.send("Page.getInstallabilityErrors");
@@ -36,14 +37,14 @@ test.describe("PWA", () => {
 
   test("offline: home e serviços abrem do cache; horários avisam que precisa de conexão; páginas novas mostram /offline", async ({ page, context }) => {
     const barba = await serviceId("Barba");
-    await page.goto("/");
+    await page.goto(site());
     await waitForServiceWorker(page);
     // Visita as páginas para que fiquem em cache.
-    await page.goto("/servicos");
+    await page.goto(site("servicos"));
     await expect(page.getByTestId("service-item").first()).toBeVisible();
-    await page.goto(`/agendar?servicos=${barba}`);
+    await page.goto(`${site("agendar")}?servicos=${barba}`);
     await expect(page.getByRole("heading", { name: "Escolha o serviço" })).toBeVisible();
-    await page.goto("/");
+    await page.goto(site());
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     // Com a emulação offline, o Chromium às vezes descarta a navegação (goto retorna null e a URL não muda).
@@ -62,10 +63,10 @@ test.describe("PWA", () => {
     await page.reload();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
-    await gotoOffline("/servicos", /^Serviços/);
+    await gotoOffline(site("servicos"), /^Serviços/);
     await expect(page.getByRole("heading", { name: "Serviços", level: 1 })).toBeVisible();
 
-    await gotoOffline(`/agendar?servicos=${barba}`, /^Agendar horário/);
+    await gotoOffline(`${site("agendar")}?servicos=${barba}`, /^Agendar horário/);
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByRole("status")).toContainText("É preciso estar conectado para ver os horários livres");
 
@@ -82,7 +83,7 @@ test.describe("dica de instalação no iOS", () => {
   test.use({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch });
 
   test("aparece no Safari do iPhone, pode ser dispensada e é lembrada", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     const hint = page.getByRole("region", { name: "Instalar o app" });
     await expect(hint).toBeVisible();
     await expect(hint).toContainText("Adicionar à Tela de Início");

@@ -7,7 +7,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
-vi.mock("@/app/(public)/agendar/actions", () => ({ createBooking: vi.fn() }));
+vi.mock("@/app/barbearia/[slug]/agendar/actions", () => ({ createBooking: vi.fn() }));
 vi.mock("@/lib/availability", () => ({
   fetchAvailableDates: vi.fn(async () => [DAY]),
   fetchSlots: vi.fn(async () => [SLOT]),
@@ -52,7 +52,7 @@ describe("<BookingFlow> no desktop (≥ 1024 px)", () => {
 
   it("mostra as quatro colunas e a etapa ativa do stepper acompanha o preenchimento", async () => {
     const user = userEvent.setup();
-    render(<BookingFlow services={services} barber={{ name: "Rafael Moreira", bio: "12 anos de navalha.", photoUrl: null }} />);
+    render(<BookingFlow shopSlug="demonstracao" services={services} barber={{ name: "Rafael Moreira", bio: "12 anos de navalha.", photoUrl: null }} />);
 
     for (const name of ["Escolha o serviço", "Escolha a data e o horário", "Seus dados", "Resumo do agendamento"]) {
       expect(screen.getByRole("heading", { name })).toBeInTheDocument();
@@ -81,12 +81,12 @@ describe("<BookingFlow> no desktop (≥ 1024 px)", () => {
   });
 
   it("consentimento de WhatsApp vem marcado e desmarcar envia false", async () => {
-    const { createBooking } = await import("@/app/(public)/agendar/actions");
+    const { createBooking } = await import("@/app/barbearia/[slug]/agendar/actions");
     const create = vi.mocked(createBooking);
     create.mockReset();
     create.mockResolvedValue({ ok: true, token: "t".repeat(30) });
     const user = userEvent.setup();
-    render(<BookingFlow services={services} barber={{ name: "Rafael Moreira", bio: "", photoUrl: null }} />);
+    render(<BookingFlow shopSlug="demonstracao" services={services} barber={{ name: "Rafael Moreira", bio: "", photoUrl: null }} />);
 
     await user.click(screen.getByRole("checkbox", { name: /^Corte de cabelo/ }));
     await user.click(await screen.findByRole("button", { name: new RegExp(`^\\w.+, ${Number(DAY.slice(8))} de`) }));
@@ -100,7 +100,7 @@ describe("<BookingFlow> no desktop (≥ 1024 px)", () => {
     expect(optIn).not.toBeChecked();
 
     await user.click(screen.getByRole("button", { name: "Confirmar agendamento" }));
-    expect(create).toHaveBeenCalledWith(expect.objectContaining({ phone: "(11) 91234-5678", whatsappOptIn: false }));
+    expect(create).toHaveBeenCalledWith("demonstracao", expect.objectContaining({ phone: "(11) 91234-5678", whatsappOptIn: false }));
   });
 });
 
@@ -112,7 +112,7 @@ describe("<BookingFlow> no celular", () => {
 
   it("stepper segue a etapa atual (não o preenchimento) e o resumo fixo acompanha a seleção", async () => {
     const user = userEvent.setup();
-    render(<BookingFlow services={services} />);
+    render(<BookingFlow shopSlug="demonstracao" services={services} />);
     await user.click(screen.getByRole("checkbox", { name: /^Corte de cabelo/ }));
     await user.click(screen.getByRole("checkbox", { name: /^Barba/ }));
     expect(activeStep()).toMatch(/^1Serviço/);

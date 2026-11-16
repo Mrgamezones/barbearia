@@ -53,3 +53,7 @@ next-env.d.ts
 
 # Estado local do Supabase CLI (versão do CLI, segredos do start)
 supabase/.temp/
+
+# Cadastros reais de barbearias (têm e-mail e senha do dono); só os modelos são versionados
+supabase/shops/*.json
+!supabase/shops/*.example.json

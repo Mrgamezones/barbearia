@@ -36,7 +36,9 @@ export default defineConfig({
     ? undefined
     : {
         // Build de produção: comportamento real (cache, service worker) e sem compilação sob demanda.
-        command: `npm run build && npx next start -p ${PORT}`,
+        // Apaga o cache de dados (unstable_cache) de rodadas anteriores: ele sobrevive ao build e ao db reset,
+        // e a primeira visita depois de reiniciar o servidor receberia a cópia antiga (stale-while-revalidate).
+        command: `node -e "require('fs').rmSync('.next/cache/fetch-cache',{recursive:true,force:true})" && npm run build && npx next start -p ${PORT}`,
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 300_000,

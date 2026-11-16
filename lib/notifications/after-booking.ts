@@ -1,5 +1,8 @@
 import "server-only";
 import { siteUrl } from "@/lib/env";
+import { formatAddress } from "@/lib/format";
+import { bookingPath } from "@/lib/paths";
+import type { ShopAddress } from "@/lib/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "./email";
 import { confirmationEmail, whatsappConfirmationParams, type ConfirmationData } from "./templates";
@@ -14,27 +17,41 @@ export function whatsAppLogDetail(r: WhatsAppResult): string | null {
   return r.status === "sent" ? r.id : r.status === "dry_run" ? null : r.error;
 }
 
+/** Barbearia do agendamento, lida junto com ele (embed do PostgREST). */
+export type AppointmentShop = ShopAddress & { slug: string; name: string; notifications_enabled: boolean };
+
 /**
  * Executado após um agendamento ser criado (site ou painel): envia a confirmação por e-mail
  * (quando informado) e por WhatsApp (quando há consentimento), em paralelo.
  * Falhas não impedem o agendamento nem afetam o outro canal.
+ * Barbearia com notificações desligadas (demonstração): nada é enviado, só registrado como `skipped`.
  */
 export async function afterBookingCreated(appointmentId: string, token: string): Promise<void> {
   try {
     const db = createAdminClient();
-    const [{ data: a }, { data: settings }] = await Promise.all([
-      db
-        .from("appointments")
-        .select("customer_name,customer_email,customer_phone,whatsapp_opt_in,starts_at,total_cents,appointment_services(name_snapshot,price_cents_snapshot)")
-        .eq("id", appointmentId)
-        .single(),
-      db.from("business_settings").select("name,address").eq("id", 1).single(),
-    ]);
+    const { data: a } = await db
+      .from("appointments")
+      .select(
+        "customer_name,customer_email,customer_phone,whatsapp_opt_in,starts_at,total_cents,appointment_services(name_snapshot,price_cents_snapshot),shops(slug,name,street,number,complement,district,city,state,postal_code,notifications_enabled)",
+      )
+      .eq("id", appointmentId)
+      .single();
     if (!a) return;
+    const shop = a.shops as unknown as AppointmentShop;
+
+    if (!shop.notifications_enabled) {
+      const channels = [a.customer_email ? "email" : null, a.whatsapp_opt_in && a.customer_phone ? "whatsapp" : null].filter(Boolean);
+      if (channels.length) {
+        await db.from("notification_log").insert(
+          channels.map((channel) => ({ appointment_id: appointmentId, channel, kind: "confirmation", status: "skipped", detail: "notificações desligadas" })),
+        );
+      }
+      return;
+    }
 
     const data: ConfirmationData = {
-      businessName: settings?.name ?? "Barbearia",
-      address: settings?.address ?? "",
+      businessName: shop.name,
+      address: formatAddress(shop),
       customerName: a.customer_name,
       startsAt: a.starts_at,
       totalCents: a.total_cents,
@@ -42,7 +59,7 @@ export async function afterBookingCreated(appointmentId: string, token: string):
         name: s.name_snapshot,
         price_cents: s.price_cents_snapshot,
       })),
-      manageUrl: `${siteUrl()}/agendamento/${encodeURIComponent(token)}`,
+      manageUrl: `${siteUrl()}${bookingPath(shop.slug, token)}`,
     };
 
     const tasks: Promise<unknown>[] = [];

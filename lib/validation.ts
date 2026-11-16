@@ -30,6 +30,13 @@ export const customerSchema = z.object({
 export type CustomerInput = z.input<typeof customerSchema>;
 export type Customer = z.output<typeof customerSchema>;
 
+/** Slug de barbearia: minúsculas sem acento, números e hífens (mesma regra do banco). */
+export const slugSchema = z
+  .string()
+  .min(3)
+  .max(40)
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use letras minúsculas sem acento, números e hífens.");
+
 export const bookingSchema = customerSchema.extend({
   serviceIds: z.array(z.uuid()).min(1, "Escolha ao menos um serviço."),
   startsAt: z.iso.datetime({ offset: true, message: "Horário inválido." }),

@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { cancelBooking } from "@/app/(public)/agendamento/[token]/actions";
+import { cancelBooking } from "@/app/barbearia/[slug]/agendamento/[token]/actions";
 import { Button } from "@/components/ui/Button";
 
 const MESSAGES = {
@@ -11,7 +11,7 @@ const MESSAGES = {
   unknown: "Não foi possível cancelar agora. Tente novamente.",
 } as const;
 
-export function CancelBookingButton({ token }: { token: string }) {
+export function CancelBookingButton({ shopSlug, token }: { shopSlug: string; token: string }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export function CancelBookingButton({ token }: { token: string }) {
           disabled={pending}
           onClick={() =>
             start(async () => {
-              const r = await cancelBooking(token);
+              const r = await cancelBooking(shopSlug, token);
               if (r.ok) router.refresh();
               else setError(MESSAGES[r.error]);
             })

@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { adminDb } from "./helpers/db";
+import { shopId, site } from "./helpers/shop";
 
 async function expectNoAxeViolations(page: import("@playwright/test").Page) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -14,13 +15,13 @@ async function expectNoHorizontalScroll(page: import("@playwright/test").Page) {
 
 test.describe("guia de estilo e componentes base", () => {
   test("não tem violações de acessibilidade (axe)", async ({ page }) => {
-    await page.goto("/estilo");
+    await page.goto(site("estilo"));
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
   test("alvos de toque têm pelo menos 44 px e foco é visível", async ({ page }) => {
-    await page.goto("/estilo");
+    await page.goto(site("estilo"));
     for (const el of await page.locator("main button, main a, main input").all()) {
       const box = await el.boundingBox();
       if (!box) continue;
@@ -35,16 +36,16 @@ test.describe("guia de estilo e componentes base", () => {
 
 test.describe("páginas públicas", () => {
   test("home mostra hero, CTA para o painel, endereço e WhatsApp no rodapé", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Corte na medida, do seu jeito.");
     await expect(page.getByRole("link", { name: /agendar agora/i })).toHaveAttribute("href", "#agendar");
-    await expect(page.locator("#contato")).toContainText("Rua Exemplo");
-    await expect(page.locator("#contato")).toContainText("(11) 99999-9999");
+    await expect(page.locator("#contato")).toContainText("Avenida Teste, 200 – Jardim, Campinas – SP");
+    await expect(page.locator("#contato")).toContainText("(19) 98888-7777");
     await expectNoAxeViolations(page);
   });
 
   test("/servicos lista serviços ativos com preço e duração", async ({ page }) => {
-    await page.goto("/servicos");
+    await page.goto(site("servicos"));
     const items = page.getByTestId("service-item");
     await expect(items.first()).toBeVisible();
     await expect(page.getByRole("main").getByText("Corte de cabelo", { exact: true })).toBeVisible();
@@ -54,11 +55,11 @@ test.describe("páginas públicas", () => {
   });
 
   test("rodapé mostra domingo fechado", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(site());
     await expect(page.getByTestId("footer-hours")).toContainText("Domingo — Fechado");
   });
 
-  for (const path of ["/", "/servicos", "/agendar"]) {
+  for (const path of ["/", site("servicos"), site("agendar")]) {
     test(`sem rolagem horizontal em 320 px: ${path}`, async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 640 });
       await page.goto(path);
@@ -70,7 +71,7 @@ test.describe("páginas públicas", () => {
 test.describe("serviço inativo", () => {
   const name = `Serviço inativo E2E ${Date.now()}`;
   test.beforeAll(async () => {
-    const { error } = await adminDb().from("services").insert({ name, price_cents: 1000, duration_min: 30, active: false });
+    const { error } = await adminDb().from("services").insert({ shop_id: await shopId(), name, price_cents: 1000, duration_min: 30, active: false });
     expect(error).toBeNull();
   });
   test.afterAll(async () => {
@@ -78,7 +79,7 @@ test.describe("serviço inativo", () => {
   });
 
   test("não aparece na listagem pública", async ({ page }) => {
-    await page.goto("/servicos");
+    await page.goto(site("servicos"));
     await expect(page.getByTestId("service-item").first()).toBeVisible();
     await expect(page.getByText(name)).toHaveCount(0);
   });

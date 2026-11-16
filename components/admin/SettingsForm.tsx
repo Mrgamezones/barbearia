@@ -1,8 +1,9 @@
 "use client";
 import { useState, useTransition, type ComponentProps, type ReactNode } from "react";
-import { saveSettings, type SettingsInput } from "@/app/admin/(painel)/config/actions";
+import { saveSettings, type SettingsInput } from "@/app/painel/[slug]/config/actions";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
+import { usePanelSlug } from "./usePanelSlug";
 
 type Form = { [K in keyof SettingsInput]-?: string };
 
@@ -42,6 +43,7 @@ function Section({ title, description, children }: { title: string; description:
 }
 
 export function SettingsForm({ initial }: { initial: Form }) {
+  const slug = usePanelSlug();
   const [form, setForm] = useState(initial);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
@@ -64,7 +66,7 @@ export function SettingsForm({ initial }: { initial: Form }) {
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await saveSettings(form);
+          const r = await saveSettings(slug, form);
           if (r.ok) {
             setFields({});
             setSaved(true);
@@ -74,7 +76,19 @@ export function SettingsForm({ initial }: { initial: Form }) {
     >
       <Section title="Barbearia" description="Nome, contato e endereço, usados no cabeçalho, no rodapé e nas mensagens.">
         {field("name", "Nome da barbearia")}
-        {field("address", "Endereço")}
+        <div className="grid gap-4 md:grid-cols-[1fr_120px]">
+          {field("street", "Logradouro", { placeholder: "Rua Abaré" })}
+          {field("number", "Número", { placeholder: "2" })}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {field("complement", "Complemento (opcional)", { placeholder: "Sala 2" })}
+          {field("district", "Bairro")}
+        </div>
+        <div className="grid gap-4 md:grid-cols-[1fr_90px_140px]">
+          {field("city", "Cidade")}
+          {field("state", "UF", { placeholder: "BA", maxLength: 2 })}
+          {field("postal_code", "CEP", { placeholder: "40000-000", inputMode: "numeric" })}
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           {field("whatsapp", "WhatsApp de contato", { type: "tel" })}
           {field("email", "E-mail de contato", { type: "email" })}

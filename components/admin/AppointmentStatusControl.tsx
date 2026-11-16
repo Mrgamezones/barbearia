@@ -1,11 +1,13 @@
 "use client";
 import { useState, useTransition } from "react";
-import { updateAppointmentStatus } from "@/app/admin/(painel)/actions";
+import { updateAppointmentStatus } from "@/app/painel/[slug]/actions";
 import { STATUS_LABEL } from "@/lib/admin/agenda";
 import type { AppointmentStatus } from "@/lib/types";
+import { usePanelSlug } from "./usePanelSlug";
 
 /** Seletor de status do agendamento no painel. */
 export function AppointmentStatusControl({ id, status }: { id: string; status: AppointmentStatus }) {
+  const slug = usePanelSlug();
   const [value, setValue] = useState(status);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -26,7 +28,7 @@ export function AppointmentStatusControl({ id, status }: { id: string; status: A
           setValue(next);
           setError(null);
           start(async () => {
-            const r = await updateAppointmentStatus(id, next);
+            const r = await updateAppointmentStatus(slug, id, next);
             if (!r.ok) {
               setValue(prev);
               setError(r.error ?? "Erro ao atualizar.");

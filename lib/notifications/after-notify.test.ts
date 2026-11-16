@@ -19,10 +19,7 @@ function fakeDb() {
       const q = {
         select: () => q,
         eq: () => q,
-        single: async () => ({
-          data: table === "appointments" ? state.appointment : { name: "Barbearia Modelo", address: "Rua Exemplo, 100" },
-          error: null,
-        }),
+        single: async () => ({ data: table === "appointments" ? state.appointment : null, error: null }),
         insert: async (row: Row) => {
           state.inserts.push({ table, row });
           return { error: null };
@@ -60,7 +57,20 @@ const baseAppointment = {
   starts_at: "2026-05-22T17:00:00Z",
   total_cents: 4500,
   appointment_services: [{ name_snapshot: "Corte de cabelo", price_cents_snapshot: 4500 }],
+  shops: {
+    slug: "barbearia-teste",
+    name: "Barbearia Modelo",
+    street: "Rua Exemplo",
+    number: "100",
+    complement: "",
+    district: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    notifications_enabled: true,
+  },
 };
+const demoShop = { ...baseAppointment.shops, slug: "demonstracao", notifications_enabled: false };
 
 beforeEach(() => {
   state.appointment = { ...baseAppointment };
@@ -87,6 +97,23 @@ describe("afterBookingCreated", () => {
         expect.objectContaining({ channel: "whatsapp", kind: "confirmation", status: "sent", detail: "wamid.1" }),
       ]),
     );
+  });
+
+  it("monta o link de gerenciamento com o endereço da barbearia", async () => {
+    vi.stubEnv("SITE_URL", "https://agenda.exemplo");
+    await afterBookingCreated("ap-1", "tok");
+    expect(sendEmail.mock.calls[0][0].text).toContain("https://agenda.exemplo/barbearia/barbearia-teste/agendamento/tok");
+    expect(sendEmail.mock.calls[0][0].text).toContain("Rua Exemplo, 100");
+    vi.unstubAllEnvs();
+  });
+
+  it("demonstração: não envia nada e registra skipped", async () => {
+    state.appointment = { ...baseAppointment, shops: demoShop };
+    await afterBookingCreated("ap-1", "tok");
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendWhatsAppTemplate).not.toHaveBeenCalled();
+    const logs = state.inserts.find((i) => i.table === "notification_log")?.row as unknown as Row[];
+    expect(logs.map((l) => `${l.channel}/${l.status}`)).toEqual(["email/skipped", "whatsapp/skipped"]);
   });
 
   it("sem consentimento envia só o e-mail", async () => {
@@ -130,6 +157,20 @@ describe("afterBookingCancelled", () => {
     state.claim = null;
     await afterBookingCancelled("ap-1", "admin");
     expect(sendWhatsAppTemplate).not.toHaveBeenCalled();
+  });
+
+  it("demonstração: não reserva nem envia o aviso", async () => {
+    state.appointment = { ...baseAppointment, shops: demoShop };
+    await afterBookingCancelled("ap-1", "client");
+    expect(state.rpcCalls).toHaveLength(0);
+    expect(sendWhatsAppTemplate).not.toHaveBeenCalled();
+  });
+
+  it("link para agendar de novo aponta para a barbearia", async () => {
+    vi.stubEnv("SITE_URL", "https://agenda.exemplo");
+    await afterBookingCancelled("ap-1", "client");
+    expect(sendWhatsAppTemplate.mock.calls[0][0].params).toContain("https://agenda.exemplo/barbearia/barbearia-teste/agendar");
+    vi.unstubAllEnvs();
   });
 
   it("sem consentimento não reserva nem envia", async () => {

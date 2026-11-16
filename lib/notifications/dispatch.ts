@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { formatAddress } from "@/lib/format";
+import type { ShopAddress } from "@/lib/types";
 import { reminderEmail, reminderMessage, whatsappReminderParams } from "./templates";
 import type { WhatsAppMessage, WhatsAppResult } from "./whatsapp";
 
@@ -25,6 +27,7 @@ type Claimed = {
   services: string | null;
   customer_phone?: string | null;
   whatsapp_opt_in?: boolean | null;
+  shop_id: string;
 };
 
 export type DispatchSummary = { claimed: number; sent: number; failed: number; released: number; removedSubscriptions: number };
@@ -43,10 +46,18 @@ export async function dispatchDueReminders(db: SupabaseClient, senders: Senders,
   summary.claimed = due.length;
   if (!due.length) return summary;
 
-  const { data: settings } = await db.from("business_settings").select("name,address").eq("id", 1).single();
-  const base = { businessName: settings?.name ?? "Barbearia", address: settings?.address ?? "" };
+  // Nome e endereço de cada barbearia envolvida, lidos uma vez por execução.
+  const shopIds = [...new Set(due.map((r) => r.shop_id))];
+  const { data: shops } = await db
+    .from("shops")
+    .select("id,name,street,number,complement,district,city,state,postal_code")
+    .in("id", shopIds);
+  const bases = new Map(
+    ((shops ?? []) as (ShopAddress & { id: string; name: string })[]).map((s) => [s.id, { businessName: s.name, address: formatAddress(s) }]),
+  );
 
   for (const r of due) {
+    const base = bases.get(r.shop_id) ?? { businessName: "Barbearia", address: "" };
     const data = { ...base, customerName: r.customer_name, startsAt: r.starts_at, services: r.services ?? "", kind: r.kind };
     let status: "sent" | "failed" | "no_target" | "dry_run" | "undeliverable" = "failed";
     let detail: string | null = null;

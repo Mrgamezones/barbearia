@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import type { FullConfig } from "@playwright/test";
+import { SHOP } from "../helpers/shop";
 import { api, BOOKING_SERVICE, PANEL_SERVICE, PLAN_FILE, type Plan } from "./helpers";
 
 /** Pacote @playwright/test e imagem do container precisam ser da mesma versão (navegadores da imagem). */
@@ -31,7 +32,7 @@ async function waitForApp(baseURL: string) {
  */
 async function buildPlan(baseURL: string): Promise<Plan> {
   const svc = async (name: string) => {
-    const rows = await api<{ id: string; duration_min: number }[]>(baseURL, `/rest/v1/services?select=id,duration_min&name=eq.${encodeURIComponent(name)}`);
+    const rows = await api<{ id: string; duration_min: number }[]>(baseURL, `/rest/v1/services?select=id,duration_min,shops!inner(slug)&shops.slug=eq.${SHOP}&name=eq.${encodeURIComponent(name)}`);
     if (!rows[0]) throw new Error(`Serviço não encontrado no seed: ${name}`);
     return rows[0];
   };
@@ -41,13 +42,14 @@ async function buildPlan(baseURL: string): Promise<Plan> {
   // A partir de amanhã: o cancelamento pelo link exige 2 h de antecedência.
   const day = (offset: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date(Date.now() + offset * 86_400_000));
   const dates = await api<{ day: string }[]>(baseURL, "/rest/v1/rpc/get_available_dates", {
+    p_shop_slug: SHOP,
     p_from: day(1),
     p_to: day(45),
     p_total_minutes: booking.duration_min,
   });
   if (dates.length < 2) throw new Error("São necessários ao menos 2 dias abertos nos próximos 45 dias");
   const slots = (date: string, minutes: number) =>
-    api<{ slot: string }[]>(baseURL, "/rest/v1/rpc/get_available_slots", { p_date: date, p_total_minutes: minutes }).then((r) =>
+    api<{ slot: string }[]>(baseURL, "/rest/v1/rpc/get_available_slots", { p_shop_slug: SHOP, p_date: date, p_total_minutes: minutes }).then((r) =>
       r.map((s) => new Date(s.slot).toISOString()),
     );
 

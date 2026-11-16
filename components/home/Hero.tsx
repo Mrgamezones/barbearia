@@ -1,11 +1,11 @@
 import { CalendarDays } from "lucide-react";
 import Image from "next/image";
 import heroPhoto from "@/public/hero.webp";
-import type { BusinessSettings } from "@/lib/types";
+import type { Shop } from "@/lib/types";
 import { ScrollToBooking } from "./ScrollToBooking";
 
 /** Hero: foto em sangria com gradiente escuro, eyebrow, título em duas linhas (2ª dourada), subtítulo e CTA. */
-export function Hero({ settings }: { settings: BusinessSettings }) {
+export function Hero({ shop: settings }: { shop: Shop }) {
   const line1 = settings.hero_title_line1 || settings.name;
   const line2 = settings.hero_title_line2;
   return (

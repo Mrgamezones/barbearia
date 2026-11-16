@@ -1,5 +1,6 @@
 /** Códigos retornados pelas funções do banco e mensagens exibidas ao cliente. */
 export type BookingErrorCode =
+  | "shop_not_found"
   | "invalid_services"
   | "invalid_data"
   | "slot_unavailable"
@@ -10,6 +11,7 @@ export type BookingErrorCode =
   | "unknown";
 
 export const BOOKING_ERROR_MESSAGES: Record<BookingErrorCode, string> = {
+  shop_not_found: "Esta barbearia não está mais recebendo agendamentos pelo site.",
   invalid_services: "Algum serviço escolhido não está mais disponível. Revise a seleção.",
   invalid_data: "Confira seus dados: nome e WhatsApp precisam estar corretos.",
   slot_unavailable: "Este horário não está mais disponível. Escolha outro.",

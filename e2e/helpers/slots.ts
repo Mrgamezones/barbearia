@@ -1,5 +1,6 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { adminDb } from "./db";
+import { SHOP, shopId } from "./shop";
 
 const TZ = "America/Sao_Paulo";
 
@@ -8,10 +9,13 @@ export function localDate(offsetDays: number): string {
 }
 
 /** Retorna um horário livre (ISO) a partir de `minOffsetDays`, escolhendo o slot de índice `pick`. */
-export async function findFreeSlot(durationMin: number, { minOffsetDays = 3, pick = 0 } = {}): Promise<{ date: string; slot: string }> {
+export async function findFreeSlot(
+  durationMin: number,
+  { minOffsetDays = 3, pick = 0, shop = SHOP } = {},
+): Promise<{ date: string; slot: string }> {
   for (let d = minOffsetDays; d <= 30; d++) {
     const date = localDate(d);
-    const { data, error } = await adminDb().rpc("get_available_slots", { p_date: date, p_total_minutes: durationMin });
+    const { data, error } = await adminDb().rpc("get_available_slots", { p_shop_slug: shop, p_date: date, p_total_minutes: durationMin });
     if (error) throw error;
     const slots = (data as { slot: string }[]).map((r) => r.slot);
     if (slots.length > pick) return { date, slot: slots[pick] };
@@ -19,8 +23,8 @@ export async function findFreeSlot(durationMin: number, { minOffsetDays = 3, pic
   throw new Error("Nenhum horário livre encontrado nos próximos 30 dias");
 }
 
-export async function serviceId(name: string): Promise<string> {
-  const { data, error } = await adminDb().from("services").select("id").eq("name", name).single();
+export async function serviceId(name: string, shop = SHOP): Promise<string> {
+  const { data, error } = await adminDb().from("services").select("id").eq("shop_id", await shopId(shop)).eq("name", name).single();
   if (error) throw error;
   return data.id as string;
 }

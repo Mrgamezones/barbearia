@@ -7,18 +7,21 @@ import { createPortal } from "react-dom";
 import { buttonClasses } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { Brand } from "./Brand";
-import { NAV_ITEMS } from "./nav";
+import { shopPath } from "@/lib/paths";
+import { navItems } from "./nav";
 
 
 /** Cabeçalho fixo: marca, navegação (menu em tela cheia abaixo de 1024 px) e botão "Agendar". */
-export function SiteHeader({ name }: { name: string }) {
+export function SiteHeader({ name, slug }: { name: string; slug: string }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   // Na home o painel de agendamento está na própria página.
-  const bookingHref = pathname === "/" ? "/#agendar" : "/agendar";
+  const home = shopPath(slug);
+  const bookingHref = pathname === home ? `${home}#agendar` : shopPath(slug, "agendar");
+  const items = navItems(slug);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -73,9 +76,9 @@ export function SiteHeader({ name }: { name: string }) {
       )}
     >
       <div className="container-page flex h-16 items-center justify-between gap-2 lg:h-[72px]">
-        <Brand name={name} />
+        <Brand name={name} href={home} />
         <nav aria-label="Principal" className="hidden items-center gap-10 lg:flex">
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <Link key={item.href} href={item.href} className="py-3 text-xs font-medium uppercase tracking-[0.15em] text-muted transition-colors hover:text-text">
               {item.label}
             </Link>
@@ -111,13 +114,13 @@ export function SiteHeader({ name }: { name: string }) {
           className="fixed inset-0 z-50 flex h-dvh flex-col bg-bg lg:hidden"
         >
           <div className="container-page flex h-16 items-center justify-between">
-            <Brand name={name} />
+            <Brand name={name} href={home} />
             <button type="button" onClick={close} className="-mr-2 flex size-11 items-center justify-center rounded-sm text-text hover:bg-card" aria-label="Fechar menu">
               <X className="size-6" aria-hidden />
             </button>
           </div>
           <nav aria-label="Menu principal" className="container-page flex flex-1 flex-col justify-center gap-2 pb-16">
-            {NAV_ITEMS.map((item) => (
+            {items.map((item) => (
               <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="title-section py-3 text-text hover:text-gold">
                 {item.label}
               </Link>

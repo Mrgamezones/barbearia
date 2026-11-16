@@ -3,6 +3,7 @@ import { BellRing, Check, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { getPublicConfig } from "@/lib/public-config";
+import { bookingPath } from "@/lib/paths";
 
 type State = "checking" | "unsupported" | "idle" | "working" | "enabled" | "denied" | "error";
 
@@ -19,7 +20,7 @@ function pushSupported() {
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 
-export function EnableReminderButton({ token, hasEmail }: { token: string; hasEmail: boolean }) {
+export function EnableReminderButton({ shopSlug, token, hasEmail }: { shopSlug: string; token: string; hasEmail: boolean }) {
   const [state, setState] = useState<State>("checking");
 
   useEffect(() => {
@@ -51,7 +52,7 @@ export function EnableReminderButton({ token, hasEmail }: { token: string; hasEm
       const json = (await res.json()) as { ok: boolean; appointment_id?: string };
       if (!json.ok || !json.appointment_id) return setState("error");
       const cache = await caches.open(LINKS_CACHE);
-      await cache.put(`/__lembrete/${json.appointment_id}`, new Response(`/agendamento/${encodeURIComponent(token)}`));
+      await cache.put(`/__lembrete/${json.appointment_id}`, new Response(bookingPath(shopSlug, token)));
       setState("enabled");
     } catch {
       setState("error");

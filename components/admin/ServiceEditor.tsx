@@ -1,18 +1,20 @@
 "use client";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
-import { deleteService, moveService, saveService, setServiceActive, type ActionResult } from "@/app/admin/(painel)/servicos/actions";
+import { deleteService, moveService, saveService, setServiceActive, type ActionResult } from "@/app/painel/[slug]/servicos/actions";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import { cn } from "@/lib/cn";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { centsToInput } from "@/lib/money";
 import type { Service } from "@/lib/types";
+import { usePanelSlug } from "./usePanelSlug";
 
 type Props = { service?: Service; isFirst?: boolean; isLast?: boolean };
 
 /** Sem `service`: formulário de novo serviço. Com `service`: linha editável. */
 export function ServiceEditor({ service, isFirst, isLast }: Props) {
+  const slug = usePanelSlug();
   const isNew = !service;
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => ({
@@ -57,7 +59,7 @@ export function ServiceEditor({ service, isFirst, isLast }: Props) {
         onSubmit={(e) => {
           e.preventDefault();
           run(
-            () => saveService({ ...form, id: service?.id }),
+            () => saveService(slug, { ...form, id: service?.id }),
             () => {
               setEditing(false);
               if (isNew) setForm({ name: "", description: "", price: "", duration: "30", is_combo: false });
@@ -118,16 +120,16 @@ export function ServiceEditor({ service, isFirst, isLast }: Props) {
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-1">
-        <Button variant="ghost" className="px-3" aria-label={`Subir ${s.name}`} disabled={pending || isFirst} onClick={() => run(() => moveService(s.id, "up"))}>
+        <Button variant="ghost" className="px-3" aria-label={`Subir ${s.name}`} disabled={pending || isFirst} onClick={() => run(() => moveService(slug, s.id, "up"))}>
           <ArrowUp className="size-4" aria-hidden />
         </Button>
-        <Button variant="ghost" className="px-3" aria-label={`Descer ${s.name}`} disabled={pending || isLast} onClick={() => run(() => moveService(s.id, "down"))}>
+        <Button variant="ghost" className="px-3" aria-label={`Descer ${s.name}`} disabled={pending || isLast} onClick={() => run(() => moveService(slug, s.id, "down"))}>
           <ArrowDown className="size-4" aria-hidden />
         </Button>
         <Button variant="ghost" onClick={() => setEditing(true)} disabled={pending}>
           Editar
         </Button>
-        <Button variant="ghost" onClick={() => run(() => setServiceActive(s.id, !s.active))} disabled={pending}>
+        <Button variant="ghost" onClick={() => run(() => setServiceActive(slug, s.id, !s.active))} disabled={pending}>
           {s.active ? "Desativar" : "Ativar"}
         </Button>
         <Button
@@ -136,7 +138,7 @@ export function ServiceEditor({ service, isFirst, isLast }: Props) {
           aria-label={`Excluir ${s.name}`}
           disabled={pending}
           onClick={() => {
-            if (window.confirm(`Excluir "${s.name}"?`)) run(() => deleteService(s.id));
+            if (window.confirm(`Excluir "${s.name}"?`)) run(() => deleteService(slug, s.id));
           }}
         >
           <Trash2 className="size-4" aria-hidden />

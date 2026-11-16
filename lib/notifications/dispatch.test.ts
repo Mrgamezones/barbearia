@@ -19,7 +19,7 @@ function fakeDb(due: Row[], subs: Row[] = []) {
       const q = {
         select: () => q,
         eq: async () => ({ data: subs, error: null }),
-        single: async () => ({ data: { name: "Barbearia Modelo", address: "Rua Exemplo, 100" }, error: null }),
+
         insert: async (row: Row) => {
           logs.push(row);
           return { error: null };
@@ -31,7 +31,10 @@ function fakeDb(due: Row[], subs: Row[] = []) {
           },
         }),
       };
-      if (table === "business_settings") return { select: () => ({ eq: () => ({ single: q.single }) }) };
+      if (table === "shops") {
+        const shop = { id: "shop-1", name: "Barbearia Modelo", street: "Rua Exemplo", number: "100", complement: "", district: "", city: "", state: "", postal_code: "" };
+        return { select: () => ({ in: async () => ({ data: [shop], error: null }) }) };
+      }
       return q;
     },
   };
@@ -49,6 +52,7 @@ const reminder = (over: Row = {}): Row => ({
   services: "Corte de cabelo",
   customer_phone: "+5511999998888",
   whatsapp_opt_in: true,
+  shop_id: "shop-1",
   ...over,
 });
 

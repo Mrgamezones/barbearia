@@ -1,4 +1,5 @@
 import { api, BOOKING_SERVICE, deviceEmail, devicePhone, deviceSlot, evidence, expect, expectNoHorizontalScroll, prettyPhone, test } from "./helpers";
+import { SHOP, site } from "../helpers/shop";
 
 /** Caixa de e-mail de teste (Mailpit) — acessível de dentro do container de simulação. */
 async function findEmail(to: string): Promise<{ Subject: string } | null> {
@@ -18,7 +19,7 @@ test("agendamento completo por toque, link de gerenciamento e cancelamento", asy
   const email = deviceEmail(info);
 
   // 1. Serviços
-  await page.goto("/agendar");
+  await page.goto(site("agendar"));
   await page.getByRole("checkbox", { name: /^Corte \+ Barba(?! \+)/ }).tap();
   await expect(page.getByTestId("bar-total")).toHaveText("R$ 70,00");
   await expect(page.getByTestId("bar-duration")).toHaveText("1h");
@@ -78,6 +79,6 @@ test("agendamento completo por toque, link de gerenciamento e cancelamento", asy
   await evidence(manage, info, "7-cancelado");
 
   // O horário volta a ficar livre
-  const free = await api<{ slot: string }[]>(baseURL!, "/rest/v1/rpc/get_available_slots", { p_date: slot.date, p_total_minutes: 60 });
+  const free = await api<{ slot: string }[]>(baseURL!, "/rest/v1/rpc/get_available_slots", { p_shop_slug: SHOP, p_date: slot.date, p_total_minutes: 60 });
   expect(free.map((s) => new Date(s.slot).toISOString())).toContain(slot.iso);
 });

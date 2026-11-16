@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { site } from "./helpers/shop";
 
 // Regressão visual da identidade: home e painel de agendamento em 360, 768 e 1280 px.
 // As imagens de referência ficam em e2e/visual.spec.ts-snapshots/ (geradas no Chromium local).
@@ -27,7 +28,7 @@ test.describe("regressão visual", () => {
   for (const width of widths) {
     test(`home em ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/");
+      await page.goto(site());
       await settle(page);
       await expect(page).toHaveScreenshot(`home-${width}.png`, {
         fullPage: true,
@@ -40,7 +41,7 @@ test.describe("regressão visual", () => {
 
     test(`painel de agendamento em ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/agendar");
+      await page.goto(site("agendar"));
       await settle(page);
       await expect(page.locator("#agendar")).toHaveScreenshot(`painel-${width}.png`, { animations: "disabled", maxDiffPixelRatio: 0.002 });
     });

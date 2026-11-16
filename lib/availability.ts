@@ -17,14 +17,24 @@ async function rpc<T>(fn: string, args: Record<string, unknown>, signal?: AbortS
   return res.json() as Promise<T>;
 }
 
-/** Datas com pelo menos um horário livre entre `from` e `to` (inclusive). */
-export async function fetchAvailableDates(from: string, to: string, totalMinutes: number, signal?: AbortSignal): Promise<string[]> {
-  const rows = await rpc<{ day: string }[]>("get_available_dates", { p_from: from, p_to: to, p_total_minutes: totalMinutes }, signal);
+/** Datas da barbearia com pelo menos um horário livre entre `from` e `to` (inclusive). */
+export async function fetchAvailableDates(
+  shopSlug: string,
+  from: string,
+  to: string,
+  totalMinutes: number,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  const rows = await rpc<{ day: string }[]>(
+    "get_available_dates",
+    { p_shop_slug: shopSlug, p_from: from, p_to: to, p_total_minutes: totalMinutes },
+    signal,
+  );
   return rows.map((r) => r.day);
 }
 
 /** Horários livres (ISO) de uma data. */
-export async function fetchSlots(date: string, totalMinutes: number, signal?: AbortSignal): Promise<string[]> {
-  const rows = await rpc<{ slot: string }[]>("get_available_slots", { p_date: date, p_total_minutes: totalMinutes }, signal);
+export async function fetchSlots(shopSlug: string, date: string, totalMinutes: number, signal?: AbortSignal): Promise<string[]> {
+  const rows = await rpc<{ slot: string }[]>("get_available_slots", { p_shop_slug: shopSlug, p_date: date, p_total_minutes: totalMinutes }, signal);
   return rows.map((r) => new Date(r.slot).toISOString());
 }

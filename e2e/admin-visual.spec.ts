@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { ensureTestUsers, login } from "./helpers/admin";
+import { panel } from "./helpers/shop";
 
 async function axeViolations(page: Page) {
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -11,19 +12,19 @@ test.describe("painel com a identidade visual", () => {
   test.beforeAll(async () => ensureTestUsers());
 
   test("login sem violações de acessibilidade e com o fundo escuro da identidade", async ({ page }) => {
-    await page.goto("/admin/login");
+    await page.goto("/painel/login");
     await expect(page.getByRole("button", { name: "Entrar" })).toBeVisible();
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(11, 11, 12)");
     expect(await axeViolations(page)).toEqual([]);
   });
 
   const pages = [
-    ["/admin", "Agenda"],
-    ["/admin/novo", "Novo agendamento"],
-    ["/admin/servicos", "Serviços"],
-    ["/admin/horarios", "Horários"],
-    ["/admin/bloqueios", "Bloqueios"],
-    ["/admin/config", "Configurações"],
+    [panel(), "Agenda"],
+    [panel("novo"), "Novo agendamento"],
+    [panel("servicos"), "Serviços"],
+    [panel("horarios"), "Horários"],
+    [panel("bloqueios"), "Bloqueios"],
+    [panel("config"), "Configurações"],
   ] as const;
 
   test("todas as telas do painel sem violações (axe)", async ({ page }) => {
@@ -37,7 +38,7 @@ test.describe("painel com a identidade visual", () => {
 
   test("navegação do painel por teclado, com foco visível", async ({ page }) => {
     await login(page);
-    await page.goto("/admin");
+    await page.goto(panel());
     const nav = page.getByRole("navigation", { name: "Painel" });
     // Tab até o primeiro item do menu do painel.
     for (let i = 0; i < 10; i++) {
@@ -50,9 +51,9 @@ test.describe("painel com a identidade visual", () => {
       const link = nav.getByRole("link", { name: label, exact: true });
       await expect(link).toBeFocused();
       expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
-      if (path === "/admin/config") {
+      if (path === panel("config")) {
         await page.keyboard.press("Enter");
-        await expect(page).toHaveURL(/\/admin\/config$/);
+        await expect(page).toHaveURL(/\/painel\/barbearia-teste\/config$/);
         await expect(page.getByRole("heading", { name: "Configurações", level: 1 })).toBeVisible();
         await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute("aria-current", "page");
       }

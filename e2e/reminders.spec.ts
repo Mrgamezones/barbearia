@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { dispatchDueReminders, type PushSendResult, type Senders } from "../lib/notifications/dispatch";
 import { insertAppointment } from "./helpers/booking";
 import { adminDb } from "./helpers/db";
+import { DEMO } from "./helpers/shop";
 import { cleanupByPhone, testPhone } from "./helpers/slots";
 
 // Integração do disparador com o banco local, usando envios falsos. Sem navegador.
@@ -13,7 +14,7 @@ test.describe("disparo de lembretes", () => {
   test.afterAll(async () => cleanupByPhone(phones));
 
   function fakeSenders(push: PushSendResult = "sent") {
-    const calls = { push: [] as string[], email: [] as string[] };
+    const calls = { push: [] as string[], email: [] as string[], emailText: new Map<string, string>() };
     const senders: Senders = {
       sendPush: async (sub, payload) => {
         calls.push.push(`${payload.appointmentId}:${sub.endpoint}`);
@@ -21,6 +22,8 @@ test.describe("disparo de lembretes", () => {
       },
       sendEmail: async (msg) => {
         calls.email.push(msg.to);
+        calls.emailText.set(msg.to, `${msg.subject}
+${msg.text}`);
         return { ok: true };
       },
     };
@@ -28,11 +31,11 @@ test.describe("disparo de lembretes", () => {
   }
 
   /** Agendamento com e-mail e push, com lembretes já vencidos. */
-  async function seed(opts: { status?: string; offsetMinutes: number }) {
+  async function seed(opts: { status?: string; offsetMinutes: number; shop?: string }) {
     const phone = testPhone();
     phones.push(phone);
     const startsAt = new Date(Date.now() + opts.offsetMinutes * 60_000);
-    const { id } = await insertAppointment({ startsAt, phone, status: opts.status });
+    const { id } = await insertAppointment({ startsAt, phone, status: opts.status, shop: opts.shop });
     const email = `lembrete-${phone.slice(-6)}@teste.local`;
     await adminDb().from("appointments").update({ customer_email: email }).eq("id", id);
     await adminDb().from("push_subscriptions").insert({ appointment_id: id, endpoint: `https://push.example/${id}`, p256dh: "k", auth: "a" });
@@ -58,6 +61,24 @@ test.describe("disparo de lembretes", () => {
     expect(calls.push.filter((p) => p.startsWith(a.id))).toHaveLength(1);
     const { data } = await adminDb().from("reminders").select("sent_at").eq("appointment_id", a.id);
     expect(data!.every((r) => r.sent_at)).toBe(true);
+  });
+
+  test("lembrete usa o nome e o endereço da barbearia do agendamento", async () => {
+    const a = await seed({ offsetMinutes: 140 });
+    const { senders, calls } = fakeSenders();
+    await dispatchDueReminders(adminDb(), senders);
+    const text = calls.emailText.get(a.email) ?? "";
+    expect(text).toContain("Barbearia Teste");
+    expect(text).toContain("Avenida Teste, 200 – Jardim, Campinas – SP");
+    expect(text).not.toContain("Barbearia Modelo");
+  });
+
+  test("demonstração: lembretes vencidos não são enviados", async () => {
+    const a = await seed({ offsetMinutes: 200, shop: DEMO });
+    const { senders, calls } = fakeSenders();
+    await dispatchDueReminders(adminDb(), senders);
+    expect(calls.email).not.toContain(a.email);
+    expect(calls.push.some((p) => p.startsWith(a.id))).toBe(false);
   });
 
   test("agendamento cancelado não recebe lembrete", async () => {

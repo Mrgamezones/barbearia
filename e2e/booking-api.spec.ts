@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { adminDb, anonDb } from "./helpers/db";
 import { cleanupByPhone, findFreeSlot, serviceId, testPhone } from "./helpers/slots";
+import { SHOP } from "./helpers/shop";
 
 // Testes de integração do banco via API (sem navegador). Rodam uma vez só.
 test.describe("create_booking (integração)", () => {
@@ -16,7 +17,7 @@ test.describe("create_booking (integração)", () => {
     phones.push(a, b);
 
     const call = (phone: string) =>
-      adminDb().rpc("create_booking", { p_service_ids: [corte], p_starts_at: slot, p_name: "Concorrente", p_phone: phone });
+      adminDb().rpc("create_booking", { p_shop_slug: SHOP, p_service_ids: [corte], p_starts_at: slot, p_name: "Concorrente", p_phone: phone });
     const c = testPhone();
     phones.push(c);
     const results = await Promise.all([call(a), call(b), call(c)]);
@@ -41,10 +42,10 @@ test.describe("create_booking (integração)", () => {
     const { slot } = await findFreeSlot(30, { minOffsetDays: 20, pick: Math.floor(Math.random() * 12) });
     const [sim, nao] = [testPhone(), testPhone()];
     phones.push(sim, nao);
-    const a = await adminDb().rpc("create_booking", { p_service_ids: [barba], p_starts_at: slot, p_name: "Opt In", p_phone: sim, p_whatsapp_opt_in: true });
+    const a = await adminDb().rpc("create_booking", { p_shop_slug: SHOP, p_service_ids: [barba], p_starts_at: slot, p_name: "Opt In", p_phone: sim, p_whatsapp_opt_in: true });
     expect((a.data as { ok: boolean }).ok, JSON.stringify(a)).toBe(true);
     const { slot: slot2 } = await findFreeSlot(30, { minOffsetDays: 21, pick: Math.floor(Math.random() * 12) });
-    const b = await adminDb().rpc("create_booking", { p_service_ids: [barba], p_starts_at: slot2, p_name: "Sem Param", p_phone: nao });
+    const b = await adminDb().rpc("create_booking", { p_shop_slug: SHOP, p_service_ids: [barba], p_starts_at: slot2, p_name: "Sem Param", p_phone: nao });
     expect((b.data as { ok: boolean }).ok, JSON.stringify(b)).toBe(true);
 
     const { data } = await adminDb().from("appointments").select("customer_phone,whatsapp_opt_in").in("customer_phone", [sim, nao]);
@@ -54,7 +55,7 @@ test.describe("create_booking (integração)", () => {
   test("chave pública não consegue chamar create_booking direto", async () => {
     const corte = await serviceId("Corte de cabelo");
     const { slot } = await findFreeSlot(30, { minOffsetDays: 5, pick: 8 });
-    const r = await anonDb().rpc("create_booking", { p_service_ids: [corte], p_starts_at: slot, p_name: "Anon", p_phone: testPhone() });
+    const r = await anonDb().rpc("create_booking", { p_shop_slug: SHOP, p_service_ids: [corte], p_starts_at: slot, p_name: "Anon", p_phone: testPhone() });
     expect(r.error?.code).toBe("42501");
   });
 });
