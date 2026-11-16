@@ -39,6 +39,8 @@ jobs:
           } > .env.local
 
       - run: npm run lint
+      # next-env.d.ts (tipos de imagens e rotas) é gerado pelo Next e fica fora do git.
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm test
       - run: npx supabase test db
