@@ -53,14 +53,14 @@
 - [x] 7.2 Botão "Ativar lembrete" na confirmação, pedindo permissão só após clique, e `/api/push/subscribe` associando inscrição ao agendamento (validando token); verificar com teste e com fallback explicativo quando não há suporte
 - [x] 7.3 E-mail de confirmação via Resend com detalhes e link de gerenciamento; verificar com teste usando mock do provedor
 - [x] 7.4 Rota `/api/cron/reminders` protegida por `CRON_SECRET`, com `FOR UPDATE SKIP LOCKED`, envio push (`web-push`/VAPID) e e-mail, marcação `sent_at`, remoção de inscrições 404/410 e ignorando cancelados; verificar com testes de idempotência (duas execuções = um envio), cancelado e push expirado com e-mail
-- [ ] 7.5 Handlers `push` e `notificationclick` no service worker abrindo o link de gerenciamento; verificar manualmente com notificação de teste no Chrome
-- [ ] 7.6 Configurar Vercel Cron (15 min) ou `pg_cron` + `pg_net`, documentando no README e gerando chaves VAPID; verificar disparo em ambiente de preview
+- [x] 7.5 Handlers `push` e `notificationclick` no service worker abrindo o link de gerenciamento; verificar manualmente com notificação de teste no Chrome — **Conferida: app/sw.ts + e2e/push.spec.ts e e2e/admin-journey.spec.ts no CI verde (597dba7)**
+- [ ] 7.6 Configurar Vercel Cron (15 min) ou `pg_cron` + `pg_net`, documentando no README e gerando chaves VAPID; verificar disparo em ambiente de preview — **Superada: lembretes por pg_cron + pg_net no Netlify (docs/deploy-netlify.md, passo 4; prepare-production-launch 4.3)**
 
 ## 8. Integração e entrega
 
 - [x] 8.1 Página de política de privacidade (LGPD) linkada no formulário; verificar presença do link no fluxo
-- [ ] 8.2 Teste E2E ponta a ponta: cliente agenda → admin vê na agenda → cliente cancela pelo link → horário volta livre; verificar passando em CI
-- [ ] 8.3 Deploy na Vercel com Supabase de produção, migrações aplicadas e admin criado; verificar agendamento real em produção e Lighthouse ≥ 90 em performance e acessibilidade no mobile
+- [x] 8.2 Teste E2E ponta a ponta: cliente agenda → admin vê na agenda → cliente cancela pelo link → horário volta livre; verificar passando em CI — **Conferida: app/sw.ts + e2e/push.spec.ts e e2e/admin-journey.spec.ts no CI verde (597dba7)**
+- [ ] 8.3 Deploy na Vercel com Supabase de produção, migrações aplicadas e admin criado; verificar agendamento real em produção e Lighthouse ≥ 90 em performance e acessibilidade no mobile — **Superada: deploy no Netlify em vez da Vercel (prepare-production-launch, grupos 3 a 6)**
 
 ## Workflow follow-up
 

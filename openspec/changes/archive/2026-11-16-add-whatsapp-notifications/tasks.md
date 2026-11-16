@@ -35,8 +35,8 @@
 
 ## 6. Verificação integrada
 
-- [ ] 6.1 Rodar `npm test`, `npx supabase test db`, `npm run lint` e `npm run test:e2e` com tudo passando, e `npx next build --webpack` sem erros
-- [ ] 6.2 Teste manual com credenciais reais da Meta e modelos aprovados: agendar com o próprio número, receber a confirmação, cancelar pelo painel e receber o aviso; conferir no `notification_log` os wamids e que o log da aplicação mostra só os 4 últimos dígitos
+- [x] 6.1 Rodar `npm test`, `npx supabase test db`, `npm run lint` e `npm run test:e2e` com tudo passando, e `npx next build --webpack` sem erros — **CI verde em 597dba7**
+- [ ] 6.2 Teste manual com credenciais reais da Meta e modelos aprovados: agendar com o próprio número, receber a confirmação, cancelar pelo painel e receber o aviso; conferir no `notification_log` os wamids e que o log da aplicação mostra só os 4 últimos dígitos — **Pendente de conta da Meta, fora do lançamento (follow-up de prepare-production-launch)**
 
 ## Workflow follow-up
 

@@ -3,11 +3,11 @@
 ## 1. Repositório pronto para publicar
 
 - [x] 1.1 Em `next.config.ts`, trocar para `output: process.env.NETLIFY ? undefined : "standalone"` (decisão 1), com comentário explicando; remover de "Problemas comuns" em `docs/deploy-netlify.md` a linha sobre `output: standalone`; verificar com `NETLIFY=true npm run build` sem gerar `.next/standalone` e com `npm run build` gerando `.next/standalone/server.js`
-- [ ] 1.2 Commitar o trabalho de `add-multi-shop-tenancy` e desta change, sem `supabase/shops/*.json` reais, e enviar para o GitHub (decisão 4); verificar em GitHub → Actions que o CI da `main` termina verde (lint, tsc, unitários, `supabase test db`, E2E)
+- [x] 1.2 Commitar o trabalho de `add-multi-shop-tenancy` e desta change, sem `supabase/shops/*.json` reais, e enviar para o GitHub (decisão 4); verificar em GitHub → Actions que o CI da `main` termina verde (lint, tsc, unitários, `supabase test db`, E2E)
 
 ## 2. Changes antigas organizadas
 
-- [ ] 2.1 Anotar as tasks pendentes das changes antigas sem marcá-las como feitas, conforme a tabela do design:
+- [x] 2.1 Anotar as tasks pendentes das changes antigas sem marcá-las como feitas, conforme a tabela do design:
   - `add-netlify-deploy` 4.1–4.3: "substituída por prepare-production-launch";
   - `add-barbershop-booking` 7.6 e 8.3: "superada por Netlify + pg_cron";
   - 7.5 e 8.2: marcar como feitas só depois de conferir `app/sw.ts`, `e2e/push.spec.ts` e `e2e/admin-journey.spec.ts` no CI verde da task 1.2;
@@ -15,7 +15,7 @@
   - 6.2: "pendente de conta da Meta, fora do lançamento".
 
   Verificar que cada task pendente tem a nota e que `openspec validate --all` passa.
-- [ ] 2.2 Arquivar, na ordem da decisão 2: `add-barbershop-booking`, `add-premium-visual-identity`, `add-whatsapp-notifications` e `add-netlify-deploy`, sincronizando os specs. Verificar que `openspec/specs/` passa a ter `netlify-deployment`, `pwa-shell`, `appointment-booking`, `admin-panel`, `service-catalog`, `appointment-reminders`, `home-page`, `visual-identity` e `whatsapp-notifications`, e que `openspec validate --all --strict` passa (inclusive o delta desta change contra `netlify-deployment`)
+- [x] 2.2 Arquivar, na ordem da decisão 2: `add-barbershop-booking`, `add-premium-visual-identity`, `add-whatsapp-notifications` e `add-netlify-deploy`, sincronizando os specs. Verificar que `openspec/specs/` passa a ter `netlify-deployment`, `pwa-shell`, `appointment-booking`, `admin-panel`, `service-catalog`, `appointment-reminders`, `home-page`, `visual-identity` e `whatsapp-notifications`, e que `openspec validate --all --strict` passa (inclusive o delta desta change contra `netlify-deployment`)
 
 ## 3. Conta e domínio (com o responsável)
 

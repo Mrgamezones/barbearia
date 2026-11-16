@@ -20,9 +20,9 @@
 
 ## 4. Primeiro deploy (com o responsável)
 
-- [ ] 4.1 Com o responsável: repositório git criado e enviado ao GitHub/GitLab, projeto Supabase de produção com migrações, SQL inicial e admin; verificar no painel do Supabase que as tabelas existem e que só o admin do dono está em `admins`
-- [ ] 4.2 Com o responsável: site criado no Netlify, variáveis cadastradas e primeiro deploy; verificar que o deploy termina sem erro e que `/sw.js` e `/manifest.webmanifest` respondem 200 (se `output: "standalone"` causar erro, aplicar a saída da decisão 3 e repetir)
-- [ ] 4.3 Ligar o `pg_cron` com a URL publicada e seguir o checklist do guia de ponta a ponta; verificar que todos os itens passam e que o agendamento de teste foi cancelado
+- [ ] 4.1 Com o responsável: repositório git criado e enviado ao GitHub/GitLab, projeto Supabase de produção com migrações, SQL inicial e admin; verificar no painel do Supabase que as tabelas existem e que só o admin do dono está em `admins` — **Substituída por prepare-production-launch (grupos 3 a 6), no modelo de várias barbearias**
+- [ ] 4.2 Com o responsável: site criado no Netlify, variáveis cadastradas e primeiro deploy; verificar que o deploy termina sem erro e que `/sw.js` e `/manifest.webmanifest` respondem 200 (se `output: "standalone"` causar erro, aplicar a saída da decisão 3 e repetir) — **Substituída por prepare-production-launch (grupos 3 a 6), no modelo de várias barbearias**
+- [ ] 4.3 Ligar o `pg_cron` com a URL publicada e seguir o checklist do guia de ponta a ponta; verificar que todos os itens passam e que o agendamento de teste foi cancelado — **Substituída por prepare-production-launch (grupos 3 a 6), no modelo de várias barbearias**
 
 ## Workflow follow-up
 
