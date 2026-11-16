@@ -50,3 +50,6 @@ next-env.d.ts
 /public/sw.js
 /public/sw.js.map
 /public/swe-worker-*.js
+
+# Estado local do Supabase CLI (versão do CLI, segredos do start)
+supabase/.temp/
