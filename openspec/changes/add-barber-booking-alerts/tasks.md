@@ -32,7 +32,7 @@
 ## 7. Documentação e conferência
 
 - [x] 7.1 Atualizar `docs/deploy-netlify.md`: aplicar a migration em produção, incluir os itens novos no checklist da seção 6 (ativar avisos no Android, agendar pelo site e receber o aviso, cancelar pelo link e receber o aviso, agendamento manual sem aviso) e adicionar uma seção "iPhone" com instalar o painel, entrar de novo, ativar avisos e os limites (iOS 16.4+, Foco/economia de energia). Verificar que o guia cita a migration e os passos novos.
-- [ ] 7.2 Commitar, enviar para a `main` e aplicar a migration em produção (`npx supabase db push`). Verificar que o CI fica verde, o deploy do Netlify termina sem erro e `/painel/demir-barbershop/manifest.webmanifest` responde 200.
+- [x] 7.2 Commitar, enviar para a `main` e aplicar a migration em produção (`npx supabase db push`). Verificar que o CI fica verde, o deploy do Netlify termina sem erro e `/painel/demir-barbershop/manifest.webmanifest` responde 200.
 - [ ] 7.3 Conferência em aparelhos reais com a Demir:
   - **Android:** ativar e receber os avisos de agendamento e de cancelamento; tocar no aviso abre a agenda do dia; testar o toque com o painel aberto.
   - **iPhone:** fluxo do cliente no Safari (agendar, link, cancelar, instalar o app da barbearia e ativar lembrete); instalar o painel, entrar, ativar os avisos e receber agendamento e cancelamento.

@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { ensureTestUsers, login } from "./helpers/admin";
+import { insertAppointment } from "./helpers/booking";
+import { cleanupByPhone, testPhone } from "./helpers/slots";
 import { panel } from "./helpers/shop";
 
 async function axeViolations(page: Page) {
@@ -33,6 +35,26 @@ test.describe("painel com a identidade visual", () => {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       expect(await axeViolations(page), path).toEqual([]);
+    }
+  });
+
+  test("agendamento cancelado na agenda: legível (sem violações) e identificado como cancelado", async ({ page }) => {
+    const phone = testPhone();
+    // Dia fixo no futuro, só para este teste: não interfere na agenda de hoje dos outros testes.
+    const startsAt = new Date(Date.now() + 20 * 86_400_000);
+    startsAt.setUTCHours(14, 0, 0, 0);
+    await insertAppointment({ startsAt, phone, status: "cancelled" });
+    try {
+      await login(page);
+      const day = startsAt.toISOString().slice(0, 10);
+      await page.goto(`${panel()}?data=${day}`);
+      const item = page.locator('[data-testid="agenda-item"][data-status="cancelled"]');
+      await expect(item).toBeVisible();
+      await expect(item).toContainText("Cancelado");
+      expect(await item.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+      expect(await axeViolations(page)).toEqual([]);
+    } finally {
+      await cleanupByPhone([phone]);
     }
   });
 

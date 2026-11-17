@@ -109,15 +109,20 @@ export default async function AgendaPage({
                 <li
                   key={a.id}
                   data-testid="agenda-item"
-                  className={cn("grid gap-3 rounded-md border border-border bg-surface p-4 md:grid-cols-[90px_1fr_auto]", a.status === "cancelled" && "opacity-60")}
+                  // Cancelado: borda tracejada e horário/nome riscados, sem esmaecer (mantém o contraste de leitura).
+                  data-status={a.status}
+                  className={cn("grid gap-3 rounded-md border border-border bg-surface p-4 md:grid-cols-[90px_1fr_auto]", a.status === "cancelled" && "border-dashed bg-bg")}
                 >
-                  <div className="font-display text-2xl font-semibold text-gold">{formatTime(a.starts_at)}</div>
+                  <div className={cn("font-display text-2xl font-semibold", a.status === "cancelled" ? "text-muted line-through" : "text-gold")}>{formatTime(a.starts_at)}</div>
                   <div className="flex min-w-0 flex-col gap-1">
                     <p className="font-medium">
-                      <Link href={panelPath(slug, `clientes/${encodeURIComponent(a.customer_phone)}`)} className="hover:text-gold">
+                      <Link
+                        href={panelPath(slug, `clientes/${encodeURIComponent(a.customer_phone)}`)}
+                        className={cn("hover:text-gold", a.status === "cancelled" && "line-through decoration-muted")}
+                      >
                         {a.customer_name}
                       </Link>
-                      <span className="ml-2 text-xs text-muted">{STATUS_LABEL[a.status]}</span>
+                      <span className={cn("ml-2 text-xs", a.status === "cancelled" ? "font-semibold text-danger" : "text-muted")}>{STATUS_LABEL[a.status]}</span>
                     </p>
                     <p className="text-sm text-muted">{a.appointment_services.map((s) => s.name_snapshot).join(" + ")}</p>
                     <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
