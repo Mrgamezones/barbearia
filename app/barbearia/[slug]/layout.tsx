@@ -18,7 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const shop = await getShop((await params).slug);
   if (!shop) return {};
   return {
-    title: { default: `${shop.name} — Agendamento online`, template: `%s · ${shop.name}` },
+    // absolute: o template da raiz ("%s · Agendamento online") não se aplica ao título da barbearia.
+    title: { absolute: `${shop.name} — Agendamento online`, template: `%s · ${shop.name}` },
     applicationName: shop.name,
     manifest: shopPath(shop.slug, "manifest.webmanifest"),
     appleWebApp: { capable: true, title: shop.name, statusBarStyle: "black-translucent" },
