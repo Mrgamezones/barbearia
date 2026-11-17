@@ -8,9 +8,10 @@
 [build.environment]
   # Mesma versão do CI e do Dockerfile.
   NODE_VERSION = "22"
-  # Estas variáveis são públicas por definição (vão para o navegador); a varredura de segredos
+  # Estas variáveis não são segredos: as NEXT_PUBLIC_* vão para o navegador, o fuso (America/Sao_Paulo)
+  # aparece no próprio código e o VAPID_SUBJECT é só um contato. A varredura de segredos
   # do Netlify não deve barrar o build por encontrá-las no JavaScript gerado.
-  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_VAPID_PUBLIC_KEY,NEXT_PUBLIC_SITE_URL"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_VAPID_PUBLIC_KEY,NEXT_PUBLIC_SITE_URL,BUSINESS_TIMEZONE,VAPID_SUBJECT"
 
 # Service worker do PWA: o navegador precisa buscar a versão nova a cada deploy.
 [[headers]]

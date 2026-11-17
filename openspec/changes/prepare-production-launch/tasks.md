@@ -20,7 +20,7 @@
 ## 3. Conta e domínio (com o responsável)
 
 - [ ] 3.1 Escolher e registrar o domínio no registro.br (Open Questions do design); verificar que o domínio aparece como ativo no painel do registro.br
-- [ ] 3.2 Criar o projeto Supabase de produção em `sa-east-1`, rodar `npx supabase link` e `npx supabase db push` e aplicar `supabase/production-setup.example.sql` (guia, passos 2.1 a 2.3); verificar no SQL Editor que `select slug, is_demo from shops;` retorna só `demonstracao | true` e que `auth.users` está vazia
+- [x] 3.2 Criar o projeto Supabase de produção em `sa-east-1`, rodar `npx supabase link` e `npx supabase db push` e aplicar `supabase/production-setup.example.sql` (guia, passos 2.1 a 2.3); verificar no SQL Editor que `select slug, is_demo from shops;` retorna só `demonstracao | true` e que `auth.users` está vazia
 - [ ] 3.3 Configurar o Auth do Supabase com o domínio (Site URL e Redirect URLs, guia passo 2.5); verificar que as duas URLs aparecem salvas em Authentication → URL Configuration
 
 ## 4. Primeiro deploy (com o responsável)

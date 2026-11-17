@@ -81,5 +81,5 @@ Não há dados a migrar: a produção começa vazia. Rollback depois do deploy: 
 
 ## Open Questions
 
-- Nome do domínio, entre as sugestões já feitas (`agendacorte.com.br`, `horanacadeira.com.br`, `navalhaagenda.com.br`, `meucorte.app.br`) ou outro. A disponibilidade é conferida no registro.br na task 3.1.
+- ~~Nome do domínio~~ Decidido em 2026-11-16: `meucorte.site` (registrado fora do registro.br, por ser `.site`). A task 3.1 confere se ele já responde no DNS.
 - Dados da Demir Barbershop listados em `add-multi-shop-tenancy` (dias, pausa, durações, bairro, cidade, UF, CEP, WhatsApp, Instagram, barbeiro e e-mail do dono).
