@@ -13,4 +13,4 @@
 ## 3. Conferência
 
 - [x] 3.1 Regenerar os snapshots de `e2e/visual.spec.ts` que mostram o rodapé e revisar que só a linha final mudou; rodar `npm run lint`, `npx tsc --noEmit`, `npm test` e `npm run test:e2e` sem falhas
-- [ ] 3.2 Depois do deploy, conferir em `https://cortecabelo.netlify.app/barbearia/demir-barbershop` que o link aparece no rodapé e leva ao login com "Demir Barbershop"
+- [x] 3.2 Depois do deploy, conferir em `https://cortecabelo.netlify.app/barbearia/demir-barbershop` que o link aparece no rodapé e leva ao login com "Demir Barbershop"
