@@ -25,7 +25,7 @@
 
 ## 4. Primeiro deploy (com o responsável)
 
-- [ ] 4.1 Gerar as chaves VAPID e o `CRON_SECRET` (guia 3.1), criar o site no Netlify a partir do repositório e cadastrar todas as variáveis obrigatórias antes do primeiro deploy, com `NEXT_PUBLIC_SITE_URL` igual ao domínio (guia 3.2 e 3.3); verificar que o deploy termina sem erro no log do Netlify
+- [x] 4.1 Gerar as chaves VAPID e o `CRON_SECRET` (guia 3.1), criar o site no Netlify a partir do repositório e cadastrar todas as variáveis obrigatórias antes do primeiro deploy, com `NEXT_PUBLIC_SITE_URL` igual ao domínio (guia 3.2 e 3.3); verificar que o deploy termina sem erro no log do Netlify
 - [ ] 4.2 Apontar o domínio para o Netlify (guia passo 5); verificar que `https://DOMINIO/` abre com HTTPS e redireciona para `/barbearia/demonstracao`, e que `https://DOMINIO/sw.js` e `https://DOMINIO/barbearia/demonstracao/manifest.webmanifest` respondem 200
 - [ ] 4.3 Ligar os lembretes com `supabase/cron-reminders.example.sql`, usando o domínio e o `CRON_SECRET` (guia passo 4); verificar depois de 15 minutos que `cron.job_run_details` mostra `succeeded` e que `net._http_response` mostra `200`
 

@@ -90,6 +90,12 @@ export const shopFileSchema = z.object({
     .default({}),
   barbeiro: z.object({ nome: text(60), bio: text(160), foto: httpsUrl }).default({}),
   horarios: z.array(hourSchema).min(1, "informe pelo menos um dia de atendimento"),
+  // De quantos em quantos minutos a agenda oferece horários, a partir da abertura (ex.: 40 → 8h, 8h40, 9h20).
+  intervalo_agenda_min: z
+    .number()
+    .int()
+    .refine((n) => n >= 5 && n <= 120 && n % 5 === 0, "o intervalo da agenda vai de 5 a 120 minutos, múltiplo de 5")
+    .default(15),
   servicos: z.array(serviceSchema).min(1, "informe pelo menos um serviço"),
   dono: z.object({
     email: z.email("e-mail do dono inválido"),
@@ -210,6 +216,17 @@ async function main() {
     if (createdUser) await db.auth.admin.deleteUser(user.id);
     console.error(`✖ O banco recusou o cadastro, nada foi gravado: ${error.message}`);
     return 1;
+  }
+  if (f.intervalo_agenda_min !== 15) {
+    const { error: stepError } = await db.from("shops").update({ slot_interval_minutes: f.intervalo_agenda_min }).eq("slug", f.slug);
+    if (stepError) {
+      console.error(
+        `✖ Barbearia criada, mas o intervalo da agenda ficou em 15 min: ${stepError.message}
+` +
+          `  Corrija no SQL Editor: update shops set slot_interval_minutes = ${f.intervalo_agenda_min} where slug = '${f.slug}';`,
+      );
+      return 1;
+    }
   }
 
   const site = (process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");

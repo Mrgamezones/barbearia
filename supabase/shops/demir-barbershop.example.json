@@ -20,20 +20,84 @@
     "titulo_linha2": "no capricho.",
     "subtitulo": "Marque seu horário em poucos toques e chegue só para ser atendido."
   },
-  "barbeiro": { "nome": "", "bio": "", "foto": "" },
+  "barbeiro": {
+    "nome": "",
+    "bio": "",
+    "foto": ""
+  },
   "horarios": [
-    { "dia": "segunda", "abre": "08:00", "fecha": "19:00" },
-    { "dia": "terca", "abre": "08:00", "fecha": "19:00" },
-    { "dia": "quarta", "abre": "08:00", "fecha": "19:00" },
-    { "dia": "quinta", "abre": "08:00", "fecha": "19:00" },
-    { "dia": "sexta", "abre": "08:00", "fecha": "19:00" },
-    { "dia": "sabado", "abre": "08:00", "fecha": "19:00" }
+    {
+      "dia": "segunda",
+      "abre": "08:00",
+      "fecha": "19:00",
+      "intervalo_inicio": "12:00",
+      "intervalo_fim": "12:40"
+    },
+    {
+      "dia": "terca",
+      "abre": "08:00",
+      "fecha": "19:00",
+      "intervalo_inicio": "12:00",
+      "intervalo_fim": "12:40"
+    },
+    {
+      "dia": "quarta",
+      "abre": "08:00",
+      "fecha": "19:00",
+      "intervalo_inicio": "12:00",
+      "intervalo_fim": "12:40"
+    },
+    {
+      "dia": "quinta",
+      "abre": "08:00",
+      "fecha": "19:00",
+      "intervalo_inicio": "12:00",
+      "intervalo_fim": "12:40"
+    },
+    {
+      "dia": "sexta",
+      "abre": "08:00",
+      "fecha": "19:00",
+      "intervalo_inicio": "12:00",
+      "intervalo_fim": "12:40"
+    },
+    {
+      "dia": "sabado",
+      "abre": "08:00",
+      "fecha": "19:00",
+      "intervalo_inicio": "12:00",
+      "intervalo_fim": "12:40"
+    }
   ],
+  "intervalo_agenda_min": 40,
   "servicos": [
-    { "nome": "Corte de cabelo", "descricao": "Corte na tesoura ou na máquina, com acabamento.", "preco": 30, "duracao_min": 30 },
-    { "nome": "Barba", "descricao": "Barba feita e modelada na navalha.", "preco": 20, "duracao_min": 20 },
-    { "nome": "Sobrancelha", "descricao": "Limpeza e alinhamento da sobrancelha.", "preco": 10, "duracao_min": 10 },
-    { "nome": "Corte, barba e sobrancelha", "descricao": "Combo completo com preço especial.", "preco": 40, "duracao_min": 60, "combo": true }
+    {
+      "nome": "Corte de cabelo",
+      "descricao": "Corte na tesoura ou na máquina, com acabamento.",
+      "preco": 30,
+      "duracao_min": 40
+    },
+    {
+      "nome": "Barba",
+      "descricao": "Barba feita e modelada na navalha.",
+      "preco": 20,
+      "duracao_min": 40
+    },
+    {
+      "nome": "Sobrancelha",
+      "descricao": "Limpeza e alinhamento da sobrancelha.",
+      "preco": 10,
+      "duracao_min": 40
+    },
+    {
+      "nome": "Corte, barba e sobrancelha",
+      "descricao": "Combo completo com preço especial.",
+      "preco": 40,
+      "duracao_min": 80,
+      "combo": true
+    }
   ],
-  "dono": { "email": "TROCAR@email-do-dono.com.br" }
+  "dono": {
+    "email": "TROCAR@email-do-dono.com.br"
+  }
 }
