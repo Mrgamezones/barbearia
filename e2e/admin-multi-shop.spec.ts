@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ADMIN, ensureTestUsers, login } from "./helpers/admin";
 import { adminDb } from "./helpers/db";
-import { DEMO, panel, SHOP_NAME, shopId } from "./helpers/shop";
+import { DEMO, panel, SHOP_NAME, shopId, site } from "./helpers/shop";
 
 // Painel por barbearia: login volta ao painel certo, outra barbearia é negada, várias barbearias listadas.
 test.describe.configure({ mode: "serial" });
@@ -15,6 +15,23 @@ test("sem login, o painel da barbearia leva ao login e volta para ele", async ({
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(new RegExp(`${panel("horarios")}$`));
   await expect(page.getByRole("heading", { name: "Horário de funcionamento" })).toBeVisible();
+});
+
+test("\"Área do barbeiro\" no rodapé leva ao login com o nome da barbearia e ao painel dela", async ({ page }) => {
+  await page.goto(site());
+  await page.getByRole("contentinfo").getByRole("link", { name: "Área do barbeiro" }).click();
+  await expect(page).toHaveURL(/\/painel\/login\?next=%2Fpainel%2Fbarbearia-teste$/);
+  await expect(page.getByRole("heading", { name: `Entrar no painel da ${SHOP_NAME}` })).toBeVisible();
+  await page.getByLabel("E-mail").fill(ADMIN.email);
+  await page.getByLabel("Senha").fill(ADMIN.password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page).toHaveURL(new RegExp(`${panel()}$`));
+});
+
+test("login com next de slug inexistente mostra a marca genérica", async ({ page }) => {
+  await page.goto("/painel/login?next=%2Fpainel%2Fnao-existe");
+  await expect(page.getByRole("heading", { name: "Entrar", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Agendamento online/ })).toBeVisible();
 });
 
 test("/painel leva direto à única barbearia do dono", async ({ page }) => {

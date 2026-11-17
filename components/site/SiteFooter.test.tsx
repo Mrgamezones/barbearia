@@ -76,4 +76,11 @@ describe("<SiteFooter>", () => {
     expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()} Barbearia Modelo`))).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Política de privacidade" })).toHaveAttribute("href", "/barbearia/demonstracao/privacidade");
   });
+
+  it("link \"Área do barbeiro\" para o painel da barbearia, sem ser seguido por buscadores", () => {
+    render(<SiteFooter shop={shop} hours={hours} services={services} />);
+    const link = screen.getByRole("link", { name: "Área do barbeiro" });
+    expect(link).toHaveAttribute("href", "/painel/demonstracao");
+    expect(link.getAttribute("rel")).toContain("nofollow");
+  });
 });

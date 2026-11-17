@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PhotoSocialIcon } from "@/components/ui/icons";
 import { formatAddress, formatPhone, whatsappLink } from "@/lib/format";
 import { hoursByDay } from "@/lib/hours";
-import { shopPath } from "@/lib/paths";
+import { panelPath, shopPath } from "@/lib/paths";
 import type { BusinessHour, Service, Shop } from "@/lib/types";
 import { Brand } from "./Brand";
 import { navItems } from "./nav";
@@ -116,9 +116,15 @@ export function SiteFooter({ shop: settings, hours, services }: { shop: Shop; ho
           <span>
             © {new Date().getFullYear()} {settings.name}. Todos os direitos reservados.
           </span>
-          <Link href={shopPath(settings.slug, "privacidade")} className="inline-flex min-h-11 items-center hover:text-text">
-            Política de privacidade
-          </Link>
+          <div className="flex gap-5">
+            <Link href={shopPath(settings.slug, "privacidade")} className="inline-flex min-h-11 items-center hover:text-text">
+              Política de privacidade
+            </Link>
+            {/* Acesso do dono: sem sessão, o middleware leva ao login e depois volta para este painel. */}
+            <Link href={panelPath(settings.slug)} rel="nofollow" className="inline-flex min-h-11 items-center hover:text-text">
+              Área do barbeiro
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
