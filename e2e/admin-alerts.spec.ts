@@ -131,8 +131,10 @@ test.describe("avisos de agendamento e cancelamento", () => {
   test("cancelamento pelo link gera aviso", async ({ page }) => {
     const phone = testPhone();
     phones.push(phone);
-    const startsAt = new Date(Date.now() + 6 * 3_600_000);
-    startsAt.setUTCMinutes(0, 0, 0);
+    // Daqui a 3 dias: um cancelado na agenda de hoje atrapalharia o teste de acessibilidade do painel,
+    // que roda em paralelo no CI.
+    const startsAt = new Date(Date.now() + 3 * 86_400_000);
+    startsAt.setUTCHours(15, 0, 0, 0);
     const { id, token } = await insertAppointment({ startsAt, phone });
     await page.goto(`${site()}/agendamento/${token}`);
     await page.getByRole("button", { name: "Cancelar agendamento" }).click();
