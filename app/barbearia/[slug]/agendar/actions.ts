@@ -5,6 +5,7 @@ import type { BookingErrorCode } from "@/lib/booking-errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { bookingSchema, fieldErrors, slugSchema } from "@/lib/validation";
 import { afterBookingCreated } from "@/lib/notifications/after-booking";
+import { notifyShopAdmins } from "@/lib/notifications/shop-alert";
 
 export type CreateBookingResult =
   | { ok: true; token: string }
@@ -50,6 +51,7 @@ export async function createBooking(shopSlug: string, input: unknown): Promise<C
   const result = data as { ok: boolean; error?: BookingErrorCode; id?: string; token?: string };
   if (!result.ok || !result.token || !result.id) return { ok: false, error: result.error ?? "unknown" };
 
-  await afterBookingCreated(result.id, result.token);
+  // Confirmação ao cliente e aviso ao dono em paralelo; nenhum dos dois lança erro.
+  await Promise.allSettled([afterBookingCreated(result.id, result.token), notifyShopAdmins(result.id, "booked")]);
   return { ok: true, token: result.token };
 }

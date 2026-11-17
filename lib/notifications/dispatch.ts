@@ -5,7 +5,8 @@ import { reminderEmail, reminderMessage, whatsappReminderParams } from "./templa
 import type { WhatsAppMessage, WhatsAppResult } from "./whatsapp";
 
 export type PushSubscriptionRow = { id: string; endpoint: string; p256dh: string; auth: string };
-export type PushPayload = { title: string; body: string; appointmentId: string; tag: string };
+/** Notificação push. `url` e `alertId` só nos avisos ao dono (o clique abre a agenda). */
+export type PushPayload = { title: string; body: string; appointmentId: string; tag: string; url?: string; alertId?: number };
 
 /** Resultado de um envio push: `gone` = inscrição expirada/inválida (404/410), deve ser removida. */
 export type PushSendResult = "sent" | "gone" | "error";

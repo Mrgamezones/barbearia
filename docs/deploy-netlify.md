@@ -50,7 +50,7 @@ npx supabase link --project-ref SEU_PROJECT_REF
 npx supabase db push
 ```
 
-O `db push` aplica as migrações de `supabase/migrations`. Ele **não** roda o `seed.sql` (que tem os donos de teste) — e é isso que queremos.
+O `db push` aplica as migrações de `supabase/migrations` (rode de novo sempre que o projeto ganhar uma migração nova, como a `20261118000100_shop_alerts.sql` dos avisos ao dono). Ele **não** roda o `seed.sql` (que tem os donos de teste) — e é isso que queremos.
 
 ### 2.3 Barbearia de demonstração
 
@@ -190,6 +190,29 @@ Faça no celular, com o site publicado. Cada item tem a ação e o resultado esp
 | 10 | `curl -H "Authorization: Bearer SEU_CRON_SECRET" https://SEU-SITE/api/cron/reminders` | `200` com `{"claimed":...,"sent":...}` |
 | 11 | Depois de 15 minutos, rode as consultas do passo 4 | `succeeded` e `200` |
 | 12 | Volte à página do agendamento de teste e toque em **Cancelar agendamento** → **Sim, cancelar** | status "Cancelado"; o horário volta a ficar livre |
+| 13 | No celular do dono (Android), abra o painel → **Configurações** → **Receber avisos neste aparelho** e permita | "Avisos ativos neste aparelho"; **Enviar aviso de teste** chega em segundos |
+| 14 | Em outro aparelho, agende pelo site da barbearia | o celular do dono recebe "Novo agendamento" com nome, dia, horário e serviços; tocar abre a agenda daquele dia |
+| 15 | Cancele esse agendamento pelo link | o dono recebe "Agendamento cancelado … O horário está livre." |
+| 16 | No painel, crie um agendamento em **Novo agendamento** | nenhum aviso chega (o dono já sabe) |
+| 17 | Com a agenda aberta na tela, agende pelo site para o dia que está aberto | o agendamento aparece em até 1 minuto, sem recarregar, e toca o toque escolhido em **Configurações → Toque do painel** |
+| 18 | No iPhone do dono, siga a seção [iPhone](#iphone-avisos-do-painel) | avisos de agendamento e de cancelamento chegam no iPhone |
+
+### iPhone: avisos do painel
+
+No iPhone (e no iPad), as notificações de sites só funcionam no **iOS 16.4 ou mais novo** e com o site **adicionado à Tela de Início**.
+
+1. No Safari, entre em `https://SEU-SITE/painel` com o e-mail e a senha do dono.
+2. Toque em **Compartilhar** → **Adicionar à Tela de Início** → **Adicionar**. O ícone se chama "Painel".
+3. Abra o painel **pelo ícone novo** e entre de novo: o app instalado não usa o login do Safari.
+4. Vá em **Configurações** → **Receber avisos neste aparelho** → **Permitir**, e toque em **Enviar aviso de teste**.
+
+Limites do iPhone:
+
+- O som do aviso com o celular bloqueado é o som de notificação do iPhone; não dá para escolher outro. O **Toque do painel** só toca com o painel aberto na tela.
+- Com **Foco** (Não Perturbe) ou **Modo de Pouca Energia**, os avisos podem atrasar ou chegar sem som. Em Ajustes → Foco, permita notificações do app "Painel".
+- Se apagar o ícone da Tela de Início, a inscrição se perde: instale de novo e ative os avisos outra vez.
+
+No Android, o som da notificação pode ser trocado em Configurações do telefone → Apps → Chrome (ou o app "Painel") → Notificações.
 
 ## 7. Outra barbearia
 

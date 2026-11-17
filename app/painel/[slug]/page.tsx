@@ -4,6 +4,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, MessageCircle, Plus } from "lucide-react";
 import Link from "next/link";
+import { AlertsReminder } from "@/components/admin/AlertsReminder";
 import { AppointmentStatusControl } from "@/components/admin/AppointmentStatusControl";
 import { ButtonLink, buttonClasses } from "@/components/ui/Button";
 import { agendaRange, expectedTotal, STATUS_LABEL, type AgendaItem, type AgendaView } from "@/lib/admin/agenda";
@@ -56,6 +57,7 @@ export default async function AgendaPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <AlertsReminder slug={slug} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow mb-1">Agenda</p>

@@ -46,25 +46,36 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-// --- Lembretes (Web Push) ------------------------------------------------------
-type ReminderPayload = { title: string; body: string; appointmentId: string; tag?: string };
+// --- Notificações (Web Push) ---------------------------------------------------
+// Lembretes do cliente: { title, body, appointmentId, tag } — o clique abre o link de gerenciamento.
+// Avisos ao dono: + { url, alertId } — o clique abre a agenda do dia e as janelas do painel atualizam.
+type PushData = { title: string; body: string; appointmentId: string; tag?: string; url?: string; alertId?: number };
 const LINKS_CACHE = "lembretes-links";
 
+const isPanel = (url: string) => new URL(url).pathname.startsWith("/painel/");
+
 self.addEventListener("push", (event) => {
-  let data: ReminderPayload;
+  let data: PushData;
   try {
-    data = event.data?.json() as ReminderPayload;
+    data = event.data?.json() as PushData;
   } catch {
     data = { title: "Lembrete do seu horário", body: event.data?.text() ?? "", appointmentId: "" };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      tag: data.tag ?? `lembrete-${data.appointmentId}`,
-      data: { appointmentId: data.appointmentId },
-    }),
+    (async () => {
+      // Sempre mostra a notificação: o iOS revoga a inscrição de quem recebe push sem mostrar nada.
+      await self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: "/icons/icon-192.png",
+        badge: "/icons/icon-192.png",
+        tag: data.tag ?? `lembrete-${data.appointmentId}`,
+        data: { appointmentId: data.appointmentId, url: data.url ?? null },
+      });
+      if (data.alertId !== undefined) {
+        const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+        for (const w of windows) if (isPanel(w.url)) w.postMessage({ type: "shop-alert", alertId: data.alertId });
+      }
+    })(),
   );
 });
 
@@ -78,11 +89,22 @@ async function manageUrlFor(appointmentId: string): Promise<string> {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const appointmentId = (event.notification.data as { appointmentId?: string } | null)?.appointmentId ?? "";
+  const data = (event.notification.data as { appointmentId?: string; url?: string | null } | null) ?? {};
   event.waitUntil(
     (async () => {
-      const url = new URL(await manageUrlFor(appointmentId), self.location.origin).href;
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      if (data.url) {
+        // Aviso ao dono: reaproveita uma janela do painel já aberta, navegando até a agenda do dia.
+        const url = new URL(data.url, self.location.origin);
+        const panelRoot = url.pathname.split("/").slice(0, 3).join("/"); // /painel/<slug>
+        const panel = windows.find((w) => new URL(w.url).pathname.startsWith(panelRoot));
+        if (panel) {
+          const focused = await panel.focus();
+          return focused.navigate(url.href);
+        }
+        return self.clients.openWindow(url.href);
+      }
+      const url = new URL(await manageUrlFor(data.appointmentId ?? ""), self.location.origin).href;
       const existing = windows.find((w) => w.url === url);
       if (existing) return existing.focus();
       return self.clients.openWindow(url);

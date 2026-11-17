@@ -1,6 +1,6 @@
 import { devices, expect, test, type Page } from "@playwright/test";
 import { serviceId } from "./helpers/slots";
-import { site } from "./helpers/shop";
+import { SHOP_NAME, panel, site } from "./helpers/shop";
 
 async function waitForServiceWorker(page: Page) {
   await page.waitForFunction(async () => {
@@ -23,6 +23,21 @@ test.describe("PWA", () => {
     const sizes = m.icons.map((i: { sizes: string; purpose: string }) => `${i.sizes}:${i.purpose}`);
     expect(sizes).toEqual(expect.arrayContaining(["192x192:any", "512x512:any", "512x512:maskable"]));
     for (const icon of m.icons) expect((await request.get(icon.src)).ok()).toBe(true);
+  });
+
+  test("painel: manifesto próprio e público, separado do app do cliente", async ({ request }) => {
+    const res = await request.get(panel("manifest.webmanifest"), { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("application/manifest+json");
+    const m = await res.json();
+    expect(m.scope).toBe("/painel/");
+    expect(m.id).toBe(`${panel()}/`);
+    expect(m.start_url).toContain(panel());
+    expect(m.name).toBe(`Painel ${SHOP_NAME}`);
+    expect(m.display).toBe("standalone");
+    const client = await (await request.get(site("manifest.webmanifest"))).json();
+    expect(m.id).not.toBe(client.id);
+    expect((await request.get("/painel/nao-existe/manifest.webmanifest", { maxRedirects: 0 })).status()).toBe(404);
   });
 
   test("Chrome considera o site instalável (sem erros de instalabilidade)", async ({ page }) => {

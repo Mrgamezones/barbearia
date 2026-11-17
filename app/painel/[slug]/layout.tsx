@@ -1,13 +1,26 @@
 import type { Metadata } from "next";
 import { logout } from "@/app/painel/login/actions";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { PanelLiveUpdates } from "@/components/admin/PanelLiveUpdates";
 import { Brand } from "@/components/site/Brand";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { getPanelSession } from "@/lib/admin/auth";
+import { getShop } from "@/lib/data/public";
 import { panelPath, shopPath } from "@/lib/paths";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: { default: "Painel", template: "%s · Painel" }, robots: { index: false } };
+/** Título do painel e app instalável próprio (manifesto em /painel/<slug>/manifest.webmanifest). */
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const base: Metadata = { title: { default: "Painel", template: "%s · Painel" }, robots: { index: false } };
+  const shop = await getShop((await params).slug);
+  if (!shop) return base;
+  return {
+    ...base,
+    applicationName: `Painel ${shop.name}`,
+    manifest: panelPath(shop.slug, "manifest.webmanifest"),
+    appleWebApp: { capable: true, title: "Painel", statusBarStyle: "black-translucent" },
+  };
+}
 
 export default async function PanelLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -48,6 +61,7 @@ export default async function PanelLayout({ children, params }: { children: Reac
         </div>
       </header>
       <main className="container-page py-8">{children}</main>
+      <PanelLiveUpdates slug={shop.slug} />
     </div>
   );
 }

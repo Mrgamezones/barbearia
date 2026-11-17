@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { AlertSoundPicker } from "@/components/admin/AlertSoundPicker";
+import { AlertsCard } from "@/components/admin/AlertsCard";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 import { getPanelSession } from "@/lib/admin/auth";
 import { formatPhone } from "@/lib/format";
@@ -12,8 +14,10 @@ export default async function SettingsPage({ params }: { params: Promise<{ slug:
       <div>
         <p className="eyebrow mb-1">Barbearia</p>
         <h1 className="title-section">Configurações</h1>
-        <p className="mt-1 text-sm text-muted">Dados exibidos no site e nas mensagens aos clientes.</p>
+        <p className="mt-1 text-sm text-muted">Avisos deste aparelho e dados exibidos no site e nas mensagens aos clientes.</p>
       </div>
+      <AlertsCard slug={s.slug} />
+      <AlertSoundPicker />
       <SettingsForm
         initial={{
           name: s.name,

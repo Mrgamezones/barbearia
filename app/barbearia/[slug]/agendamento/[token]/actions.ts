@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { afterBookingCancelled } from "@/lib/notifications/after-cancel";
+import { notifyShopAdmins } from "@/lib/notifications/shop-alert";
 import { bookingPath } from "@/lib/paths";
 import { createPublicClient } from "@/lib/supabase/public";
 import { slugSchema } from "@/lib/validation";
@@ -18,6 +19,8 @@ export async function cancelBooking(shopSlug: string, token: string): Promise<Ca
   const r = data as CancelResult & { appointment_id?: string };
   if (!r.ok) return { ok: false, error: r.error };
   revalidatePath(bookingPath(s.data, t.data));
-  if (r.appointment_id) await afterBookingCancelled(r.appointment_id, "client");
+  if (r.appointment_id) {
+    await Promise.allSettled([afterBookingCancelled(r.appointment_id, "client"), notifyShopAdmins(r.appointment_id, "cancelled_by_client")]);
+  }
   return { ok: true };
 }

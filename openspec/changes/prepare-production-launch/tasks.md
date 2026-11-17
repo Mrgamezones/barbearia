@@ -26,13 +26,13 @@
 ## 4. Primeiro deploy (com o responsável)
 
 - [x] 4.1 Gerar as chaves VAPID e o `CRON_SECRET` (guia 3.1), criar o site no Netlify a partir do repositório e cadastrar todas as variáveis obrigatórias antes do primeiro deploy, com `NEXT_PUBLIC_SITE_URL` igual ao domínio (guia 3.2 e 3.3); verificar que o deploy termina sem erro no log do Netlify
-- [ ] 4.2 Apontar o domínio para o Netlify (guia passo 5); verificar que `https://DOMINIO/` abre com HTTPS e redireciona para `/barbearia/demonstracao`, e que `https://DOMINIO/sw.js` e `https://DOMINIO/barbearia/demonstracao/manifest.webmanifest` respondem 200
+- [x] 4.2 Apontar o domínio para o Netlify (guia passo 5); verificar que `https://DOMINIO/` abre com HTTPS e redireciona para `/barbearia/demonstracao`, e que `https://DOMINIO/sw.js` e `https://DOMINIO/barbearia/demonstracao/manifest.webmanifest` respondem 200
 - [ ] 4.3 Ligar os lembretes com `supabase/cron-reminders.example.sql`, usando o domínio e o `CRON_SECRET` (guia passo 4); verificar depois de 15 minutos que `cron.job_run_details` mostra `succeeded` e que `net._http_response` mostra `200`
 
 ## 5. Demir Barbershop no ar (com o responsável)
 
 - [ ] 5.1 Concluir a task 7.1 de `add-multi-shop-tenancy` (dados reais da Demir) e cadastrar em produção com `node --env-file=.env.production.local scripts/create-shop.mjs supabase/shops/demir-barbershop.json`; verificar que `https://DOMINIO/barbearia/demir-barbershop` mostra nome, endereço, horário e os quatro serviços com os preços confirmados
-- [ ] 5.2 Entregar ao dono o endereço do site, o do painel e a senha (provisória, se gerada pelo script); verificar que o dono consegue entrar em `https://DOMINIO/painel` e cai em `/painel/demir-barbershop`
+- [x] 5.2 Entregar ao dono o endereço do site, o do painel e a senha (provisória, se gerada pelo script); verificar que o dono consegue entrar em `https://DOMINIO/painel` e cai em `/painel/demir-barbershop`
 
 ## 6. Conferência e fechamento
 
